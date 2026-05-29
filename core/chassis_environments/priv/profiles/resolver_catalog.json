@@ -1,0 +1,6 @@
+{
+  "profile:monolith": {"dev": "local_ubuntu_24_04", "prod": "linode_ubuntu_24_04"},
+  "profile:decoupled-cockpit-2": {"dev": "local_ubuntu_24_04", "prod": "digital_ocean_ubuntu_24_04"},
+  "profile:ternary-split-3": {"dev": "local_ubuntu_24_04", "prod": "linode_ubuntu_24_04"},
+  "profile:maximal-decoupled": {"dev": "local_ubuntu_24_04", "prod": "hetzner_ubuntu_24_04"}
+}

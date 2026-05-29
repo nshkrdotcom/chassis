@@ -1,4 +1,4 @@
-defmodule Chassis.StackManager.MixProject do
+defmodule Chassis.Stack.Manager.MixProject do
   use Mix.Project
 
   def project do
@@ -8,27 +8,15 @@ defmodule Chassis.StackManager.MixProject do
       elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "Core CLI stack management workflow executor engine"
+      description: "Deployment transactions and rollback orchestration"
     ]
   end
 
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger, :crypto, :public_key, :ssh]
     ]
   end
 
-  defp deps do
-    [
-      {:chassis_contracts, [path: "../../core/chassis_contracts"]},
-      {:chassis_core, [path: "../../core/chassis_core"]},
-      {:chassis_stack, [path: "../../core/chassis_stack"]},
-      {:chassis_releases, [path: "../../core/chassis_releases"]},
-      {:chassis_inventory, [path: "../../core/chassis_inventory"]},
-      {:chassis_receipts, [path: "../../core/chassis_receipts"]},
-      {:chassis_bootstrap, [path: "../../bootstrap/chassis_bootstrap"]},
-      {:chassis_installer, [path: "../../bootstrap/chassis_installer"]},
-      {:chassis_doctor, [path: "../../bootstrap/chassis_doctor"]}
-    ]
-  end
+  defp deps, do: []
 end

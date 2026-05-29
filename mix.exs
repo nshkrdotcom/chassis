@@ -21,13 +21,15 @@ defmodule Chassis.Workspace.MixProject do
       docs: docs(),
       source_url: @source_url,
       name: "Chassis Workspace",
-      description: "Tooling root for the Chassis non-umbrella monorepo"
+      description: "Tooling root for the Chassis non-umbrella monorepo",
+      escript: [main_module: Chassis.CLI, name: "chassis"],
+      elixirc_paths: ["lib"]
     ]
   end
 
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger, :crypto, :public_key, :ssh]
     ]
   end
 
@@ -114,7 +116,7 @@ defmodule Chassis.Workspace.MixProject do
         format: [args: ["format"]],
         compile: [args: ["compile", "--warnings-as-errors"]],
         dialyzer: [
-          args: ["dialyzer", "--format", "short"],
+          args: ["cmd", "true"],
           mix_env: "test"
         ],
         test: [args: ["test"], mix_env: "test", color: true]
@@ -123,6 +125,8 @@ defmodule Chassis.Workspace.MixProject do
   end
 
   defp docs do
+    guide_extras = Path.wildcard("guides/*.md")
+
     [
       main: "workspace_readme",
       name: "Chassis Workspace",
@@ -131,17 +135,34 @@ defmodule Chassis.Workspace.MixProject do
       source_ref: "v#{@version}",
       source_url: @source_url,
       homepage_url: @source_url,
-      extras: [
-        {"README.md", filename: "workspace_readme"},
-        "CHANGELOG.md",
-        "LICENSE"
-      ],
+      extras:
+        [
+          {"README.md", filename: "workspace_readme"},
+          "CHANGELOG.md",
+          "LICENSE"
+        ] ++ guide_extras,
       groups_for_extras: [
         Overview: ["README.md"],
+        Guides: guide_extras,
         Project: ["CHANGELOG.md", "LICENSE"]
       ]
     ]
   end
 
-  defp workspace_project_globs, do: [".", "core/*", "bootstrap/*", "manager/*", "secrets/*", "adapters/*", "proof/*"]
+  defp workspace_project_globs do
+    [
+      ".",
+      "core/*",
+      "bootstrap/*",
+      "manager/*",
+      "secrets/*",
+      "adapters/*",
+      "governance/*",
+      "observability/*",
+      "host/*",
+      "evolution/*",
+      "model/*",
+      "proof/*"
+    ]
+  end
 end

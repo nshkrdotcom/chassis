@@ -1,4 +1,4 @@
-defmodule Chassis.ArtifactFS.MixProject do
+defmodule Chassis.Artifact.Fs.MixProject do
   use Mix.Project
 
   def project do
@@ -8,19 +8,15 @@ defmodule Chassis.ArtifactFS.MixProject do
       elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "Release artifact filesystem locator and validation adapter"
+      description: "Local artifact cache"
     ]
   end
 
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger, :crypto, :public_key, :ssh]
     ]
   end
 
-  defp deps do
-    [
-      {:chassis_contracts, [path: "../../core/chassis_contracts"]}
-    ]
-  end
+  defp deps, do: []
 end

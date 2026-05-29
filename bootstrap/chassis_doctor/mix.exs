@@ -8,20 +8,15 @@ defmodule Chassis.Doctor.MixProject do
       elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "Preflight diagnostic checkers for CPU, memory, Erlang, systemd, SSH"
+      description: "Node, host, and mesh diagnostics"
     ]
   end
 
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger, :crypto, :public_key, :ssh]
     ]
   end
 
-  defp deps do
-    [
-      {:chassis_contracts, [path: "../../core/chassis_contracts"]},
-      {:chassis_inventory, [path: "../../core/chassis_inventory"]}
-    ]
-  end
+  defp deps, do: []
 end

@@ -8,19 +8,15 @@ defmodule Chassis.Local.MixProject do
       elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "Direct OS subprocess command execution adapter"
+      description: "Local process adapter"
     ]
   end
 
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger, :crypto, :public_key, :ssh]
     ]
   end
 
-  defp deps do
-    [
-      {:chassis_contracts, [path: "../../core/chassis_contracts"]}
-    ]
-  end
+  defp deps, do: []
 end

@@ -8,19 +8,15 @@ defmodule Chassis.Inventory.MixProject do
       elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "Normalizer for OS, Erlang, GPU, and memory hardware facts"
+      description: "Host, capacity, GPU, and discovery inventory"
     ]
   end
 
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger, :crypto, :public_key, :ssh]
     ]
   end
 
-  defp deps do
-    [
-      {:chassis_contracts, [path: "../chassis_contracts"]}
-    ]
-  end
+  defp deps, do: []
 end

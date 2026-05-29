@@ -1,4 +1,4 @@
-defmodule Chassis.CLI.MixProject do
+defmodule Chassis.Cli.MixProject do
   use Mix.Project
 
   def project do
@@ -8,19 +8,16 @@ defmodule Chassis.CLI.MixProject do
       elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "CLI subcommands router and interface layer"
+      description: "CLI subcommand router",
+      escript: [main_module: Chassis.CLI, name: "chassis"]
     ]
   end
 
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger, :crypto, :public_key, :ssh]
     ]
   end
 
-  defp deps do
-    [
-      {:chassis_stack_manager, [path: "../chassis_stack_manager"]}
-    ]
-  end
+  defp deps, do: []
 end

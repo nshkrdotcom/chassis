@@ -50,3 +50,14 @@ Chassis is designed first as a standalone stack manager. Its capabilities are st
 Chassis owns **physical deployment and spatial reality**—the knowledge of exactly what is physically running on which host and under which release version. It is operationally decoupled from Mezzanine (which owns durable workflow and state truth) and Citadel (which compiles authority packets and governs execution policies).
 
 Chassis remains a standalone pre-bootstrap utility: it can create, repair, roll back, and prove the stack without requiring Citadel or Mezzanine to already be running.
+
+## Full-Buildout Implementation Surface
+
+This workspace contains the full Chassis Spatial Plane package map: core,
+bootstrap, manager, secrets, adapters, governance, observability, host,
+evolution, model, and proof packages. The root escript exposes the deployment,
+host, app, key, environment, evolution, hardware, model, tensor, and proof
+commands required by the implementation checklist.
+
+The guides in `guides/*.md` document the operational surfaces included in the
+workspace docs build.

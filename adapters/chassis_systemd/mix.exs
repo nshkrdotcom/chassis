@@ -8,19 +8,15 @@ defmodule Chassis.Systemd.MixProject do
       elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "Host-local systemd unit deployment and status adapter"
+      description: "Systemd unit and systemctl adapter"
     ]
   end
 
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger, :crypto, :public_key, :ssh]
     ]
   end
 
-  defp deps do
-    [
-      {:chassis_contracts, [path: "../../core/chassis_contracts"]}
-    ]
-  end
+  defp deps, do: []
 end

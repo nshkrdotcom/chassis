@@ -8,19 +8,15 @@ defmodule Chassis.Receipts.MixProject do
       elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "Spatial deployment, health, and rollback receipts schema and redaction"
+      description: "Spatial deployment, health, rollback, model, and evolution receipts"
     ]
   end
 
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger, :crypto, :public_key, :ssh]
     ]
   end
 
-  defp deps do
-    [
-      {:chassis_contracts, [path: "../chassis_contracts"]}
-    ]
-  end
+  defp deps, do: []
 end

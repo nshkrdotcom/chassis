@@ -8,19 +8,15 @@ defmodule Chassis.Releases.MixProject do
       elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "Release candidates, artifact digests, and catalog validation"
+      description: "Release bundles, app registry, and approved mounts"
     ]
   end
 
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger, :crypto, :public_key, :ssh]
     ]
   end
 
-  defp deps do
-    [
-      {:chassis_contracts, [path: "../chassis_contracts"]}
-    ]
-  end
+  defp deps, do: []
 end

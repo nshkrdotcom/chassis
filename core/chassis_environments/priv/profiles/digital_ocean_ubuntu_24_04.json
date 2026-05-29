@@ -1,0 +1,9 @@
+{
+  "env_config_ref": "digital_ocean_ubuntu_24_04",
+  "os": "ubuntu_24_04",
+  "provider": "digital_ocean",
+  "runtime_versions": {"erlang": "28.3", "elixir": "1.19.5"},
+  "setup_script": ["apt-get update", "install erlang elixir", "install chassis host daemon"],
+  "ufw_ports": ["4369", "9100:9200"],
+  "install_paths": {"release": "/opt/nshkr/releases", "secrets": "/opt/nshkr/secrets", "receipts": "/opt/nshkr/receipts"}
+}

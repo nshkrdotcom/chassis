@@ -14,13 +14,9 @@ defmodule Chassis.Contracts.MixProject do
 
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger, :crypto, :public_key, :ssh]
     ]
   end
 
-  defp deps do
-    [
-      
-    ]
-  end
+  defp deps, do: []
 end
