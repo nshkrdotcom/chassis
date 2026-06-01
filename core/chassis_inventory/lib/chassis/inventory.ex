@@ -1,6 +1,15 @@
 defmodule Chassis.Inventory do
-  @moduledoc "Inventory helpers."
+  @moduledoc """
+  Inventory helpers. The fixture set lives in `proof/chassis_fixtures` after
+  Phase 21; until then a tiny local fixture list is kept here only to
+  bootstrap unit tests of the `StaticDiscovery` JSON-reading path.
+  """
 
+  @doc """
+  Local two-host fixture useful only for early phases before
+  `proof/chassis_fixtures` lands. Production code MUST use
+  `Chassis.Inventory.StaticDiscovery.discover_hosts(path: ...)`.
+  """
   @spec fixture_hosts() :: [map()]
   def fixture_hosts do
     [
@@ -23,7 +32,7 @@ defmodule Chassis.Inventory do
 end
 
 defmodule Chassis.Inventory.PhysicalHost do
-  @moduledoc "Tenant-filterable physical host."
+  @moduledoc "Tenant-filterable physical host descriptor."
   defstruct [:host_ref, :provider, :region, :hostname, resources: %{}, tenant_refs: []]
 
   @type t :: %__MODULE__{
@@ -37,9 +46,43 @@ defmodule Chassis.Inventory.PhysicalHost do
 end
 
 defmodule Chassis.Inventory.CapacityMap do
-  @moduledoc "Allocated and total resources per host."
+  @moduledoc """
+  Allocated vs total resource accounting for a single host. `available/1`
+  returns the remainder; `allocate/2` and `release/2` are pure transitions
+  that refuse over-commit.
+  """
   defstruct [:host_ref, total: %{}, allocated: %{}]
   @type t :: %__MODULE__{host_ref: String.t() | nil, total: map(), allocated: map()}
+
+  @spec available(t()) :: map()
+  def available(%__MODULE__{total: t, allocated: a}) do
+    Map.new(t, fn {k, total} -> {k, total - Map.get(a, k, 0)} end)
+  end
+
+  @spec allocate(t(), map()) :: {:ok, t()} | {:error, {:would_overcommit, atom()}}
+  def allocate(%__MODULE__{} = cap, request) when is_map(request) do
+    Enum.reduce_while(request, {:ok, cap}, fn {k, v}, {:ok, acc} ->
+      allocated = Map.get(acc.allocated, k, 0) + v
+      total = Map.get(acc.total, k, 0)
+
+      if allocated > total do
+        {:halt, {:error, {:would_overcommit, k}}}
+      else
+        {:cont, {:ok, %{acc | allocated: Map.put(acc.allocated, k, allocated)}}}
+      end
+    end)
+  end
+
+  @spec release(t(), map()) :: {:ok, t()}
+  def release(%__MODULE__{} = cap, request) when is_map(request) do
+    new_allocated =
+      Enum.reduce(request, cap.allocated, fn {k, v}, acc ->
+        next = max(Map.get(acc, k, 0) - v, 0)
+        Map.put(acc, k, next)
+      end)
+
+    {:ok, %{cap | allocated: new_allocated}}
+  end
 end
 
 defmodule Chassis.Inventory.GpuInventory do
@@ -56,23 +99,21 @@ defmodule Chassis.Inventory.GpuInventory do
 end
 
 defmodule Chassis.Inventory.PlacementValidator do
-  @moduledoc "Placement constraint validation."
+  @moduledoc """
+  Validates that a host can accommodate a placement request. Returns `:ok`
+  or `{:error, <reason_atom>}` for the first constraint that fails. Reasons:
+  `:cpu_unavailable`, `:memory_unavailable`, `:gpu_unavailable`, `:disk_unavailable`.
+  """
   @spec check(map(), map()) :: :ok | {:error, atom()}
   def check(host, request) do
     resources = Map.get(host, :resources, %{})
 
     cond do
-      Map.get(request, :gpus, 0) > Map.get(resources, :gpus, 0) ->
-        {:error, :gpu_unavailable}
-
-      Map.get(request, :cpu_cores, 0) > Map.get(resources, :cpu_cores, 0) ->
-        {:error, :cpu_unavailable}
-
-      Map.get(request, :ram_gb, 0) > Map.get(resources, :ram_gb, 0) ->
-        {:error, :memory_unavailable}
-
-      true ->
-        :ok
+      Map.get(request, :gpus, 0) > Map.get(resources, :gpus, 0) -> {:error, :gpu_unavailable}
+      Map.get(request, :cpu_cores, 0) > Map.get(resources, :cpu_cores, 0) -> {:error, :cpu_unavailable}
+      Map.get(request, :ram_gb, 0) > Map.get(resources, :ram_gb, 0) -> {:error, :memory_unavailable}
+      Map.get(request, :disk_gb, 0) > Map.get(resources, :disk_gb, 0) -> {:error, :disk_unavailable}
+      true -> :ok
     end
   end
 end
@@ -83,31 +124,128 @@ defmodule Chassis.Inventory.Discovery do
 end
 
 defmodule Chassis.Inventory.StaticDiscovery do
-  @moduledoc "Static host discovery. Uses host_ref as canonical join key."
-  @spec discover_hosts(keyword()) :: {:ok, [map()]}
+  @moduledoc """
+  Reads hosts from a JSON file (default `~/.config/chassis/hosts.json`, per
+  `0508_mesh_and_discovery_architecture.md` §5). Supports `tenant_ref:`
+  filtering. Returns canonical errors on missing file or malformed JSON.
+
+  `host_ref` is the canonical join key. IPs MUST NOT be used as the join key.
+  """
+  @behaviour Chassis.Inventory.Discovery
+
+  @default_path "~/.config/chassis/hosts.json"
+
+  @impl true
+  @spec discover_hosts(keyword()) :: {:ok, [map()]} | {:error, term()}
   def discover_hosts(opts \\ []) do
-    hosts = Chassis.Inventory.fixture_hosts()
+    path = opts |> Keyword.get(:path, @default_path) |> Path.expand()
 
-    filtered =
-      case Keyword.get(opts, :tenant_ref) do
-        nil -> hosts
-        tenant_ref -> Enum.filter(hosts, &(tenant_ref in Map.get(&1, :tenant_refs, [])))
-      end
+    with {:ok, body} <- read_file(path),
+         {:ok, parsed} <- decode_json(body) do
+      hosts = parsed |> Enum.map(&normalize_host/1) |> filter_by_tenant(opts)
+      {:ok, hosts}
+    end
+  end
 
-    {:ok, filtered}
+  defp read_file(path) do
+    case File.read(path) do
+      {:ok, body} -> {:ok, body}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp decode_json(body) do
+    case Jason.decode(body) do
+      {:ok, parsed} when is_list(parsed) -> {:ok, parsed}
+      {:ok, _other} -> {:error, {:json_decode, :not_a_list}}
+      {:error, reason} -> {:error, {:json_decode, reason}}
+    end
+  end
+
+  defp normalize_host(host) when is_map(host) do
+    %{
+      host_ref: host["host_ref"],
+      provider: atomize(host["provider"]),
+      region: host["region"],
+      hostname: host["hostname"],
+      ip_address: host["ip_address"],
+      resources: atomize_keys(host["resources"] || %{}),
+      tenant_refs: host["tenant_refs"] || []
+    }
+  end
+
+  defp atomize(nil), do: nil
+  defp atomize(value) when is_atom(value), do: value
+  defp atomize(value) when is_binary(value), do: String.to_atom(value)
+
+  defp atomize_keys(map) when is_map(map) do
+    Map.new(map, fn {k, v} ->
+      key = if is_binary(k), do: String.to_atom(k), else: k
+      {key, v}
+    end)
+  end
+
+  defp filter_by_tenant(hosts, opts) do
+    case Keyword.get(opts, :tenant_ref) do
+      nil -> hosts
+      tenant_ref -> Enum.filter(hosts, &(tenant_ref in Map.get(&1, :tenant_refs, [])))
+    end
   end
 end
 
 defmodule Chassis.Inventory.DynamicDiscovery do
-  @moduledoc "Dynamic discovery facade."
-  @spec discover_hosts(keyword()) :: {:ok, [map()]}
-  def discover_hosts(opts \\ []), do: Chassis.Inventory.StaticDiscovery.discover_hosts(opts)
+  @moduledoc """
+  Provider-routed dynamic discovery facade.
+
+  Per `0541_implementation_readiness_corrections.md` §1 row 4 and
+  `0537` §3 Phase 8 schedule, every provider returns
+  `{:error, {:not_implemented, __MODULE__}}` in Phase 3. Phase 8 lands
+  real HTTP clients for `:linode`, `:digital_ocean`, `:hetzner`, `:runpod`,
+  and `:vast_ai`.
+
+  Calling `discover_hosts/1` without an explicit `provider:` option returns
+  `{:error, :missing_provider}` — the facade does NOT silently fall through
+  to a static fixture (that was the static_cli_path antipattern removed in
+  Phase 0).
+  """
+  @behaviour Chassis.Inventory.Discovery
+
+  @providers %{
+    linode: Chassis.Inventory.DynamicDiscovery.Linode,
+    digital_ocean: Chassis.Inventory.DynamicDiscovery.DigitalOcean,
+    hetzner: Chassis.Inventory.DynamicDiscovery.Hetzner,
+    runpod: Chassis.Inventory.DynamicDiscovery.RunPod,
+    vast_ai: Chassis.Inventory.DynamicDiscovery.VastAi
+  }
+
+  @impl true
+  @spec discover_hosts(keyword()) :: {:ok, [map()]} | {:error, term()}
+  def discover_hosts(opts \\ []) do
+    case Keyword.get(opts, :provider) do
+      nil ->
+        {:error, :missing_provider}
+
+      provider ->
+        case Map.fetch(@providers, provider) do
+          {:ok, module} -> module.discover_hosts(opts)
+          :error -> {:error, {:unknown_provider, provider}}
+        end
+    end
+  end
 end
 
 for provider <- [Linode, DigitalOcean, Hetzner, RunPod, VastAi] do
   defmodule Module.concat(Chassis.Inventory.DynamicDiscovery, provider) do
-    @moduledoc "Provider discovery adapter."
-    @spec discover_hosts(keyword()) :: {:ok, [map()]}
-    def discover_hosts(opts \\ []), do: Chassis.Inventory.StaticDiscovery.discover_hosts(opts)
+    @moduledoc """
+    Phase 3 placeholder for the `#{provider}` provider HTTP client. Returns
+    `{:error, {:not_implemented, __MODULE__}}` per
+    `0541_implementation_readiness_corrections.md` §1 row 4. Phase 8 wires
+    a real HTTP client and `discover_hosts/1` will return `{:ok, [host, ...]}`.
+    """
+    @behaviour Chassis.Inventory.Discovery
+
+    @impl true
+    @spec discover_hosts(keyword()) :: {:error, {:not_implemented, module()}}
+    def discover_hosts(_opts \\ []), do: {:error, {:not_implemented, __MODULE__}}
   end
 end
