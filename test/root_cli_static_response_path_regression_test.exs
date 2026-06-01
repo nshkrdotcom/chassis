@@ -44,14 +44,15 @@ defmodule Chassis.Workspace.RootCLIStaticResponsePathRegressionTest do
 
   describe "root Chassis.CLI is a strict not-implemented dispatcher" do
     test "stack.deploy refuses to fabricate status: active and receipt:deployment:smoke" do
-      {code, payload} = Chassis.CLI.dispatch([
-        "stack.deploy",
-        "extravaganza",
-        "--profile",
-        "profile:monolith",
-        "--env",
-        "dev"
-      ])
+      {code, payload} =
+        Chassis.CLI.dispatch([
+          "stack.deploy",
+          "extravaganza",
+          "--profile",
+          "profile:monolith",
+          "--env",
+          "dev"
+        ])
 
       assert code == 1
       assert payload.error == "not_implemented"

@@ -62,7 +62,9 @@ defmodule Chassis.Contracts do
     if is_binary(tref) and String.starts_with?(tref, "tenant:hashed:") do
       ctx
     else
-      digest = :crypto.hash(:sha256, tref || "") |> Base.encode16(case: :lower) |> binary_part(0, 16)
+      digest =
+        :crypto.hash(:sha256, tref || "") |> Base.encode16(case: :lower) |> binary_part(0, 16)
+
       %{ctx | tenant_ref: "tenant:hashed:" <> digest}
     end
   end
@@ -102,17 +104,25 @@ defmodule Chassis.Contracts do
   defp normalize(value) when is_integer(value) or is_float(value), do: {:ok, value}
   defp normalize(value) when is_atom(value), do: {:ok, Atom.to_string(value)}
   defp normalize(value) when is_pid(value), do: {:error, {:unsupported_pid, inspect(value)}}
-  defp normalize(value) when is_reference(value), do: {:error, {:unsupported_reference, inspect(value)}}
+
+  defp normalize(value) when is_reference(value),
+    do: {:error, {:unsupported_reference, inspect(value)}}
+
   defp normalize(value) when is_port(value), do: {:error, {:unsupported_port, inspect(value)}}
-  defp normalize(value) when is_function(value), do: {:error, {:unsupported_function, inspect(value)}}
+
+  defp normalize(value) when is_function(value),
+    do: {:error, {:unsupported_function, inspect(value)}}
+
   defp normalize(value) when is_tuple(value),
     do: {:error, {:unsupported_tuple, "tuples must be encoded as lists, got #{inspect(value)}"}}
 
   defp normalize(other), do: {:error, {:unsupported_term, inspect(other)}}
 
   defp normalize_key(k) when is_binary(k), do: {:ok, k}
+
   defp normalize_key(k) when is_atom(k) and not is_nil(k) and not is_boolean(k),
     do: {:ok, Atom.to_string(k)}
+
   defp normalize_key(k), do: {:error, {:unsupported_map_key, inspect(k)}}
 
   # Stable, deterministic JSON: keys sorted, no whitespace.
@@ -278,6 +288,7 @@ defmodule Chassis.Contracts.PhysicalHost do
     end
 
     defp redact_ssh_key(nil), do: nil
+
     defp redact_ssh_key(ref) when is_binary(ref) do
       digest = :crypto.hash(:sha256, ref) |> Base.encode16(case: :lower) |> binary_part(0, 8)
       "[REDACTED:ssh_key_ref:" <> digest <> "]"

@@ -15,6 +15,7 @@ defmodule Chassis.ContractsTest do
   use ExUnit.Case, async: true
 
   alias Chassis.Contracts
+
   alias Chassis.Contracts.{
     Adapter,
     BEAMNode,

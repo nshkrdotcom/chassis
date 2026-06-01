@@ -8,7 +8,8 @@ defmodule Chassis.Contracts.MixProject do
       elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "Pure DTO schemas, redaction, and adapter behaviours for NSHKR spatial topology"
+      description:
+        "Pure DTO schemas, redaction, and adapter behaviours for NSHKR spatial topology"
     ]
   end
 

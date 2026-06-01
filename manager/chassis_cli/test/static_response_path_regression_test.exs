@@ -71,7 +71,8 @@ defmodule Chassis.CLI.StaticResponsePathRegressionTest do
         # which case the CLI must NOT have synthesized a success on its own —
         # or the command module isn't loaded yet and we got the canonical
         # not_implemented map.
-        assert is_map(payload), "command #{command}: expected map payload, got #{inspect(payload)}"
+        assert is_map(payload),
+               "command #{command}: expected map payload, got #{inspect(payload)}"
 
         case payload do
           %{error: "not_implemented"} = err ->
@@ -121,7 +122,8 @@ defmodule Chassis.CLI.StaticResponsePathRegressionTest do
 
   describe "not-implemented metadata shape" do
     test "stack.deploy resolves to Chassis.CLI.Command.Stack.Deploy and returns the canonical error tuple shape" do
-      {code, payload} = CLI.dispatch(["stack.deploy", "extravaganza", "--profile", "profile:monolith"])
+      {code, payload} =
+        CLI.dispatch(["stack.deploy", "extravaganza", "--profile", "profile:monolith"])
 
       # Phase 11 hasn't run yet; the command module shouldn't exist.
       refute Code.ensure_loaded?(Chassis.CLI.Command.Stack.Deploy),
@@ -157,7 +159,9 @@ defmodule Chassis.CLI.StaticResponsePathRegressionTest do
     end
 
     test "hardware.validate never returns admission_outcome from the CLI itself" do
-      {_code, payload} = CLI.dispatch(["hardware.validate", "--host", "host:cpu", "--runtime", "runtime:cuda"])
+      {_code, payload} =
+        CLI.dispatch(["hardware.validate", "--host", "host:cpu", "--runtime", "runtime:cuda"])
+
       refute Map.has_key?(payload, :admission_outcome)
     end
 

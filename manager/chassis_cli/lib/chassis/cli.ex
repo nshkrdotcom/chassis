@@ -39,22 +39,31 @@ defmodule Chassis.CLI do
   @command_table %{
     "help" => {Chassis.CLI.Command.Help, phase: 0, package: :chassis_cli},
     "--help" => {Chassis.CLI.Command.Help, phase: 0, package: :chassis_cli},
-    "stack.deploy" => {Chassis.CLI.Command.Stack.Deploy, phase: 11, package: :chassis_stack_manager},
-    "stack.status" => {Chassis.CLI.Command.Stack.Status, phase: 11, package: :chassis_stack_manager},
-    "stack.rollback" => {Chassis.CLI.Command.Stack.Rollback, phase: 11, package: :chassis_stack_manager},
+    "stack.deploy" =>
+      {Chassis.CLI.Command.Stack.Deploy, phase: 11, package: :chassis_stack_manager},
+    "stack.status" =>
+      {Chassis.CLI.Command.Stack.Status, phase: 11, package: :chassis_stack_manager},
+    "stack.rollback" =>
+      {Chassis.CLI.Command.Stack.Rollback, phase: 11, package: :chassis_stack_manager},
     "stack.diff" => {Chassis.CLI.Command.Stack.Diff, phase: 11, package: :chassis_stack_manager},
     "app.list" => {Chassis.CLI.Command.App.List, phase: 5, package: :chassis_releases},
     "app.deploy" => {Chassis.CLI.Command.App.Deploy, phase: 11, package: :chassis_stack_manager},
-    "app.rollback" => {Chassis.CLI.Command.App.Rollback, phase: 11, package: :chassis_stack_manager},
-    "host.inventory" => {Chassis.CLI.Command.Host.Inventory, phase: 3, package: :chassis_inventory},
+    "app.rollback" =>
+      {Chassis.CLI.Command.App.Rollback, phase: 11, package: :chassis_stack_manager},
+    "host.inventory" =>
+      {Chassis.CLI.Command.Host.Inventory, phase: 3, package: :chassis_inventory},
     "host.inspect" => {Chassis.CLI.Command.Host.Inspect, phase: 3, package: :chassis_inventory},
     "host.swap" => {Chassis.CLI.Command.Host.Swap, phase: 30, package: :chassis_swap_supervisor},
     "host.probe" => {Chassis.CLI.Command.Host.Probe, phase: 30, package: :chassis_health_probe},
-    "host.daemon.status" => {Chassis.CLI.Command.Host.Daemon.Status, phase: 29, package: :chassis_host_daemon},
-    "host.daemon.socket.check" => {Chassis.CLI.Command.Host.Daemon.SocketCheck, phase: 29, package: :chassis_host_daemon},
+    "host.daemon.status" =>
+      {Chassis.CLI.Command.Host.Daemon.Status, phase: 29, package: :chassis_host_daemon},
+    "host.daemon.socket.check" =>
+      {Chassis.CLI.Command.Host.Daemon.SocketCheck, phase: 29, package: :chassis_host_daemon},
     "node.doctor" => {Chassis.CLI.Command.Node.Doctor, phase: 3, package: :chassis_doctor},
-    "node.bootstrap" => {Chassis.CLI.Command.Node.Bootstrap, phase: 7, package: :chassis_bootstrap},
-    "node.trial" => {Chassis.CLI.Command.Node.Trial, phase: 28, package: :chassis_trial_supervisor},
+    "node.bootstrap" =>
+      {Chassis.CLI.Command.Node.Bootstrap, phase: 7, package: :chassis_bootstrap},
+    "node.trial" =>
+      {Chassis.CLI.Command.Node.Trial, phase: 28, package: :chassis_trial_supervisor},
     "keys.add" => {Chassis.CLI.Command.Keys.Add, phase: 10, package: :chassis_secret_sops},
     "keys.list" => {Chassis.CLI.Command.Keys.List, phase: 10, package: :chassis_secret_sops},
     "keys.show" => {Chassis.CLI.Command.Keys.Show, phase: 10, package: :chassis_secret_sops},
@@ -62,23 +71,40 @@ defmodule Chassis.CLI do
     "env.list" => {Chassis.CLI.Command.Env.List, phase: 6, package: :chassis_environments},
     "env.show" => {Chassis.CLI.Command.Env.Show, phase: 6, package: :chassis_environments},
     "proof.run" => {Chassis.CLI.Command.Proof.Run, phase: 21, package: :chassis_stacklab_bridge},
-    "evolution.batches" => {Chassis.CLI.Command.Evolution.Batches, phase: 23, package: :chassis_failure_batches},
-    "evolution.batch.show" => {Chassis.CLI.Command.Evolution.BatchShow, phase: 23, package: :chassis_failure_batches},
-    "evolution.candidate.show" => {Chassis.CLI.Command.Evolution.CandidateShow, phase: 26, package: :chassis_candidate_registry},
-    "evolution.score.show" => {Chassis.CLI.Command.Evolution.ScoreShow, phase: 32, package: :chassis_candidate_scoring},
-    "evolution.status" => {Chassis.CLI.Command.Evolution.Status, phase: 24, package: :chassis_evolution_core},
-    "evolution.start" => {Chassis.CLI.Command.Evolution.Start, phase: 24, package: :chassis_evolution_core},
-    "evolution.stop" => {Chassis.CLI.Command.Evolution.Stop, phase: 24, package: :chassis_evolution_core},
-    "evolution.apply" => {Chassis.CLI.Command.Evolution.Apply, phase: 34, package: :chassis_evolution_core},
-    "evolution.fixture" => {Chassis.CLI.Command.Evolution.Fixture, phase: 36, package: :chassis_evolution_conformance},
-    "hardware.validate" => {Chassis.CLI.Command.Hardware.Validate, phase: 41, package: :chassis_hardware_guard},
-    "model.materialize" => {Chassis.CLI.Command.Model.Materialize, phase: 40, package: :chassis_weight_materializer},
-    "model.cache.list" => {Chassis.CLI.Command.Model.CacheList, phase: 40, package: :chassis_model_cache},
-    "model.fixture" => {Chassis.CLI.Command.Model.Fixture, phase: 41, package: :chassis_model_asset_conformance},
-    "tensor.reload" => {Chassis.CLI.Command.Tensor.Reload, phase: 42, package: :chassis_tensor_reload},
-    "tensor.rollback" => {Chassis.CLI.Command.Tensor.Rollback, phase: 42, package: :chassis_tensor_reload},
+    "evolution.batches" =>
+      {Chassis.CLI.Command.Evolution.Batches, phase: 23, package: :chassis_failure_batches},
+    "evolution.batch.show" =>
+      {Chassis.CLI.Command.Evolution.BatchShow, phase: 23, package: :chassis_failure_batches},
+    "evolution.candidate.show" =>
+      {Chassis.CLI.Command.Evolution.CandidateShow,
+       phase: 26, package: :chassis_candidate_registry},
+    "evolution.score.show" =>
+      {Chassis.CLI.Command.Evolution.ScoreShow, phase: 32, package: :chassis_candidate_scoring},
+    "evolution.status" =>
+      {Chassis.CLI.Command.Evolution.Status, phase: 24, package: :chassis_evolution_core},
+    "evolution.start" =>
+      {Chassis.CLI.Command.Evolution.Start, phase: 24, package: :chassis_evolution_core},
+    "evolution.stop" =>
+      {Chassis.CLI.Command.Evolution.Stop, phase: 24, package: :chassis_evolution_core},
+    "evolution.apply" =>
+      {Chassis.CLI.Command.Evolution.Apply, phase: 34, package: :chassis_evolution_core},
+    "evolution.fixture" =>
+      {Chassis.CLI.Command.Evolution.Fixture, phase: 36, package: :chassis_evolution_conformance},
+    "hardware.validate" =>
+      {Chassis.CLI.Command.Hardware.Validate, phase: 41, package: :chassis_hardware_guard},
+    "model.materialize" =>
+      {Chassis.CLI.Command.Model.Materialize, phase: 40, package: :chassis_weight_materializer},
+    "model.cache.list" =>
+      {Chassis.CLI.Command.Model.CacheList, phase: 40, package: :chassis_model_cache},
+    "model.fixture" =>
+      {Chassis.CLI.Command.Model.Fixture, phase: 41, package: :chassis_model_asset_conformance},
+    "tensor.reload" =>
+      {Chassis.CLI.Command.Tensor.Reload, phase: 42, package: :chassis_tensor_reload},
+    "tensor.rollback" =>
+      {Chassis.CLI.Command.Tensor.Rollback, phase: 42, package: :chassis_tensor_reload},
     "boundary.scan" => {Chassis.CLI.Command.Boundary.Scan, phase: 9, package: :chassis_boundary},
-    "boundary.conformance" => {Chassis.CLI.Command.Boundary.Conformance, phase: 21, package: :chassis_conformance}
+    "boundary.conformance" =>
+      {Chassis.CLI.Command.Boundary.Conformance, phase: 21, package: :chassis_conformance}
   }
 
   @doc false
@@ -156,7 +182,9 @@ defmodule Chassis.CLI do
   end
 
   defp parse_switches(argv) do
-    {parsed, positional, _invalid} = OptionParser.parse(argv, switches: [], allow_nonexistent_atoms: false)
+    {parsed, positional, _invalid} =
+      OptionParser.parse(argv, switches: [], allow_nonexistent_atoms: false)
+
     switches = Map.new(parsed)
     {positional, switches}
   rescue
@@ -169,7 +197,9 @@ defmodule Chassis.CLI do
     if Code.ensure_loaded?(module) and function_exported?(module, :run, 2) do
       try do
         case module.run(positional, switches) do
-          {:ok, payload} when is_map(payload) -> {0, Map.put(payload, :command, command_key)}
+          {:ok, payload} when is_map(payload) ->
+            {0, Map.put(payload, :command, command_key)}
+
           {:error, {:not_implemented, ^module, info}} ->
             not_implemented_payload(command_key, module, Keyword.merge(meta, info))
 
