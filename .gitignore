@@ -11,9 +11,12 @@
 **/cover/
 **/deps/
 **/doc/
-
 erl_crash.dump
 *.ez
 chassis-*.tar
 /tmp/
 **/.elixir_ls/
+# Blitz generated runtime test state (must not be in source per 0499 §4 safety)
+/.blitz/test_state_v1/results/
+# Blitz writes generated test-state into .blitz/ at runtime. Per 0499 safety
+# constraint, generated runtime state must not be committed.
