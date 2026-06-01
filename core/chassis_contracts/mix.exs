@@ -8,15 +8,19 @@ defmodule Chassis.Contracts.MixProject do
       elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "Pure DTO schemas and behaviours for NSHKR spatial topology"
+      description: "Pure DTO schemas, redaction, and adapter behaviours for NSHKR spatial topology"
     ]
   end
 
   def application do
     [
-      extra_applications: [:logger, :crypto, :public_key, :ssh]
+      extra_applications: [:logger, :crypto]
     ]
   end
 
-  defp deps, do: []
+  defp deps do
+    [
+      {:jason, "~> 1.4"}
+    ]
+  end
 end
