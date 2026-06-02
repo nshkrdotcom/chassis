@@ -8,15 +8,18 @@ defmodule Chassis.Stack.MixProject do
       elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "Profile resolution, placement, and composition"
+      description: "Profile registry, resolver, placement planner, and composer"
     ]
   end
 
   def application do
-    [
-      extra_applications: [:logger, :crypto, :public_key, :ssh]
-    ]
+    [extra_applications: [:logger]]
   end
 
-  defp deps, do: []
+  defp deps do
+    [
+      {:chassis_contracts, path: "../chassis_contracts"},
+      {:chassis_inventory, path: "../chassis_inventory"}
+    ]
+  end
 end
