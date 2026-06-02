@@ -8,15 +8,15 @@ defmodule Chassis.Environments.MixProject do
       elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "Compile-time embedded provisioning profiles"
+      description: "Compile-time embedded provisioning profiles + resolver catalog"
     ]
   end
 
   def application do
-    [
-      extra_applications: [:logger, :crypto, :public_key, :ssh]
-    ]
+    [extra_applications: [:logger]]
   end
 
-  defp deps, do: []
+  defp deps do
+    [{:jason, "~> 1.4"}]
+  end
 end
