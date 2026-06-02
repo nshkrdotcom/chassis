@@ -8,15 +8,20 @@ defmodule Chassis.Core.MixProject do
       elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "Core orchestration engine and dispatcher"
+      description: "Core orchestration engine, dispatcher, and node registry"
     ]
   end
 
   def application do
     [
-      extra_applications: [:logger, :crypto, :public_key, :ssh]
+      extra_applications: [:logger, :crypto]
     ]
   end
 
-  defp deps, do: []
+  defp deps do
+    [
+      {:chassis_contracts, path: "../chassis_contracts"},
+      {:chassis_receipts, path: "../chassis_receipts"}
+    ]
+  end
 end
