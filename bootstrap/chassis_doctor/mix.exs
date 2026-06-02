@@ -13,9 +13,7 @@ defmodule Chassis.Doctor.MixProject do
   end
 
   def application do
-    [
-      extra_applications: [:logger, :crypto, :public_key, :ssh]
-    ]
+    [extra_applications: [:logger]]
   end
 
   defp deps, do: []

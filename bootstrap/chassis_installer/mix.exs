@@ -8,15 +8,15 @@ defmodule Chassis.Installer.MixProject do
       elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "Target-host installer"
+      description: "Target-host release bundle installer"
     ]
   end
 
   def application do
-    [
-      extra_applications: [:logger, :crypto, :public_key, :ssh]
-    ]
+    [extra_applications: [:logger, :crypto]]
   end
 
-  defp deps, do: []
+  defp deps do
+    [{:chassis_contracts, path: "../../core/chassis_contracts"}]
+  end
 end
