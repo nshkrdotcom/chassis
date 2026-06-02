@@ -1,4 +1,4 @@
-defmodule Chassis.Local.MixProject do
+defmodule Chassis.Adapter.Local.MixProject do
   use Mix.Project
 
   def project do
@@ -7,16 +7,13 @@ defmodule Chassis.Local.MixProject do
       version: "0.1.0",
       elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
-      deps: deps(),
-      description: "Local process adapter"
+      deps: deps()
     ]
   end
 
-  def application do
-    [
-      extra_applications: [:logger, :crypto, :public_key, :ssh]
-    ]
-  end
+  def application, do: [extra_applications: [:logger]]
 
-  defp deps, do: []
+  defp deps do
+    [{:chassis_contracts, path: "../../core/chassis_contracts"}]
+  end
 end
