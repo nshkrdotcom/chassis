@@ -18,5 +18,11 @@ defmodule Chassis.Fixtures.MixProject do
     ]
   end
 
-  defp deps, do: []
+  defp deps do
+    [
+      {:chassis_inventory, path: "../../core/chassis_inventory"},
+      {:chassis_stack, path: "../../core/chassis_stack"},
+      {:chassis_stack_manager, path: "../../manager/chassis_stack_manager"}
+    ]
+  end
 end

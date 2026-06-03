@@ -18,5 +18,15 @@ defmodule Chassis.Conformance.MixProject do
     ]
   end
 
-  defp deps, do: []
+  defp deps do
+    [
+      {:chassis_boundary, path: "../../core/chassis_boundary"},
+      {:chassis_fixtures, path: "../chassis_fixtures"},
+      {:chassis_receipts, path: "../../core/chassis_receipts"},
+      {:chassis_releases, path: "../../core/chassis_releases"},
+      {:chassis_stack_manager, path: "../../manager/chassis_stack_manager"},
+      {:chassis_tenant, path: "../../core/chassis_tenant"},
+      {:jason, "~> 1.4"}
+    ]
+  end
 end
