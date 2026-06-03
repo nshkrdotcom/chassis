@@ -14,9 +14,15 @@ defmodule Chassis.Coding.Agent.Runner.MixProject do
 
   def application do
     [
-      extra_applications: [:logger, :crypto, :public_key, :ssh]
+      extra_applications: [:logger]
     ]
   end
 
-  defp deps, do: []
+  defp deps do
+    [
+      {:chassis_evolution_contracts, path: "../chassis_evolution_contracts"},
+      {:chassis_evolution_receipts, path: "../chassis_evolution_receipts"},
+      {:chassis_secret_refs, path: "../../secrets/chassis_secret_refs"}
+    ]
+  end
 end
