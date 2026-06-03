@@ -1,9 +1,12 @@
 defmodule Chassis.Package.AppkitSurface do
-  @moduledoc "AppKit spatial and evolution surface schemas"
+  @moduledoc "Package marker for AppKit spatial surface schemas."
 
   @spec package_ref() :: String.t()
   def package_ref, do: "chassis_appkit_surface"
 
-  @spec implemented?() :: boolean()
-  def implemented?, do: true
+  @spec projection_module() :: module()
+  def projection_module, do: Chassis.AppKit.Surface.Projection
+
+  @spec error_module() :: module()
+  def error_module, do: Chassis.AppKit.Surface.Error
 end
