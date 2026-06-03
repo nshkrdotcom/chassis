@@ -14,9 +14,13 @@ defmodule Chassis.Projection.MixProject do
 
   def application do
     [
-      extra_applications: [:logger, :crypto, :public_key, :ssh]
+      extra_applications: [:logger, :crypto]
     ]
   end
 
-  defp deps, do: []
+  defp deps do
+    [
+      {:chassis_receipts, path: "../chassis_receipts"}
+    ]
+  end
 end

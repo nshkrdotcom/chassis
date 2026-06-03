@@ -1,9 +1,9 @@
-defmodule Chassis.Package.MezzanineBridge do
-  @moduledoc "Mezzanine workflow bridge"
+defmodule Chassis.Package.ChassisMezzanineBridge do
+  @moduledoc "Package marker for the Chassis-side Mezzanine bridge."
 
-  @spec package_ref() :: String.t()
-  def package_ref, do: "chassis_mezzanine_bridge"
+  @spec bridge() :: module()
+  def bridge, do: Chassis.Mezzanine.Bridge
 
-  @spec implemented?() :: boolean()
-  def implemented?, do: true
+  @spec operations() :: [atom()]
+  def operations, do: bridge().operations()
 end

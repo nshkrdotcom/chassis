@@ -1,9 +1,9 @@
-defmodule Chassis.Package.Projection do
-  @moduledoc "Operator-safe read projections"
+defmodule Chassis.Package.ChassisProjection do
+  @moduledoc "Package marker for the Chassis projection package."
 
-  @spec package_ref() :: String.t()
-  def package_ref, do: "chassis_projection"
+  @spec reducer() :: module()
+  def reducer, do: Chassis.Projection.ChassisDeploymentProjection
 
-  @spec implemented?() :: boolean()
-  def implemented?, do: true
+  @spec store() :: module()
+  def store, do: Chassis.Projection.Store.Memory
 end
