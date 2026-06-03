@@ -136,11 +136,11 @@ defmodule Chassis.CLI.StaticResponsePathRegressionTest do
     end
 
     test "future commands with no Phase 20 module still return the router not_implemented payload" do
-      {_code, payload} = CLI.dispatch(["model.cache.list"])
+      {_code, payload} = CLI.dispatch(["tensor.reload"])
       assert payload.error == "not_implemented"
       refute Map.get(payload, :routed?, false)
-      assert payload.phase_gate == 39
-      assert payload.package == :chassis_model_cache
+      assert payload.phase_gate == 42
+      assert payload.package == :chassis_tensor_reload
     end
   end
 
@@ -229,6 +229,37 @@ defmodule Chassis.CLI.StaticResponsePathRegressionTest do
       assert payload["digest_verified"] == true
       assert payload["bytes_via_beam_control?"] == false
       assert payload["cache_write_event"]["status"] == "deferred_phase_39"
+      refute Map.has_key?(payload, :error)
+    end
+
+    test "phase 39 model.cache.list dispatches to model cache index logic" do
+      Chassis.Model.Cache.reset()
+
+      assert {:ok, _} =
+               Chassis.Model.Cache.put("host:gpu-fixture", %{
+                 tenant_ref: "tenant:dev",
+                 model_ref: "model:hf:qwen3-small-fixture",
+                 cache_path_ref: "/var/cache/nshkr/models/qwen3-small-fixture.safetensors",
+                 bytes: 32,
+                 materialized_at: ~U[2026-01-01 00:00:00Z],
+                 last_used_at: ~U[2026-01-01 00:00:00Z],
+                 digest: "sha256:fixture"
+               })
+
+      {code, payload} =
+        CLI.dispatch([
+          "model.cache.list",
+          "--host",
+          "host:gpu-fixture",
+          "--json"
+        ])
+
+      assert code == 0
+      assert payload["host_ref"] == "host:gpu-fixture"
+      assert length(payload["entries"]) == 1
+      assert hd(payload["entries"])["model_ref"] == "model:hf:qwen3-small-fixture"
+      assert payload["root"] == "/var/cache/nshkr/models"
+      assert payload["mode"] == "0750"
       refute Map.has_key?(payload, :error)
     end
 

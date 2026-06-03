@@ -37,3 +37,22 @@ defmodule Chassis.CLI.Command.Model.Materialize do
     end
   end
 end
+
+defmodule Chassis.CLI.Command.Model.CacheList do
+  @moduledoc "Root CLI command for Phase 39 model cache listing."
+
+  alias Chassis.Model.Cache
+
+  @spec run([String.t()], map()) :: {:ok, map()} | {:error, term()}
+  def run(positional, switches) do
+    host_ref = Map.get(switches, :host) || Enum.at(positional, 0)
+
+    if is_nil(host_ref) do
+      {:error, %{reason: "missing --host"}}
+    else
+      with {:ok, report} <- Cache.list(host_ref, tenant_ref: Map.get(switches, :tenant)) do
+        {:ok, Cache.jsonable(report)}
+      end
+    end
+  end
+end

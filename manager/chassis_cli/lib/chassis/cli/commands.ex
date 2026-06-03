@@ -730,3 +730,23 @@ defmodule Chassis.CLI.Command.Model.Materialize do
     end
   end
 end
+
+defmodule Chassis.CLI.Command.Model.CacheList do
+  @moduledoc "Lists the Phase 39 target-host model cache index."
+  @behaviour Chassis.CLI.Command
+
+  alias Chassis.Model.Cache
+
+  @impl true
+  def run(positional, switches) do
+    host_ref = Map.get(switches, :host) || Enum.at(positional, 0)
+
+    if is_nil(host_ref) do
+      {:error, %{reason: "missing --host"}}
+    else
+      with {:ok, report} <- Cache.list(host_ref, tenant_ref: Map.get(switches, :tenant)) do
+        {:ok, Cache.jsonable(report)}
+      end
+    end
+  end
+end
