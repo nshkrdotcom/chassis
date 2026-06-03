@@ -48,7 +48,8 @@ Date: 2026-06-03
 - Completed: all Phase 19 implementation bullets.
 - Completed: all Phase 19 behavioral test bullets.
 - Completed: Phase 19 spine audit for shared-redacted tenant labels.
-- Deferred: none.
+- Not checked complete: full QC gate, because `mix ci` is blocked by unrelated out-of-phase formatting drift and the stack deploy CLI path is still gated until Phase 20.
+- Deferred: none for implemented Phase 19 behavior.
 
 ## Known Gaps
 
