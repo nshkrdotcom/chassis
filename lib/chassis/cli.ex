@@ -76,6 +76,8 @@ defmodule Chassis.CLI do
       {Chassis.CLI.Command.Evolution.Apply, phase: 34, package: :chassis_evolution_core},
     "evolution.fixture" =>
       {Chassis.CLI.Command.Evolution.Fixture, phase: 36, package: :chassis_evolution_conformance},
+    "evolution.proof" =>
+      {Chassis.CLI.Command.Evolution.Proof, phase: 36, package: :chassis_evolution_conformance},
     "hardware.validate" =>
       {Chassis.CLI.Command.Hardware.Validate, phase: 41, package: :chassis_hardware_guard},
     "model.materialize" =>
@@ -145,7 +147,45 @@ defmodule Chassis.CLI do
 
   defp parse_switches(argv) do
     {parsed, positional, _invalid} =
-      OptionParser.parse(argv, switches: [], allow_nonexistent_atoms: false)
+      OptionParser.parse(argv,
+        strict: [
+          app: :string,
+          dry_run: :boolean,
+          env: :string,
+          fixture: :string,
+          from: :string,
+          git_sha: :string,
+          host: :string,
+          hosts: :string,
+          idempotency_key: :string,
+          installation: :string,
+          isolation: :string,
+          json: :boolean,
+          material_file: :string,
+          model: :string,
+          no_mezzanine: :boolean,
+          patch: :string,
+          plaintext_vault: :boolean,
+          profile: :string,
+          quota: :string,
+          receipts_dir: :string,
+          release_version: :string,
+          require_citadel_consent: :boolean,
+          require_health_gated_swap: :boolean,
+          require_rollback_proof: :boolean,
+          require_trial: :boolean,
+          residency: :string,
+          runtime: :string,
+          scenario: :string,
+          suite: :string,
+          target: :string,
+          tenant: :string,
+          to: :string,
+          vault_path: :string,
+          verify_sha256: :boolean
+        ],
+        aliases: [p: :profile]
+      )
 
     {positional, Map.new(parsed)}
   rescue

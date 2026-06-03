@@ -28,6 +28,7 @@ defmodule Chassis.Cli.MixProject do
       {:chassis_bootstrap, path: "../../bootstrap/chassis_bootstrap"},
       {:chassis_doctor, path: "../../bootstrap/chassis_doctor"},
       {:chassis_environments, path: "../../core/chassis_environments"},
+      {:chassis_evolution_conformance, path: "../../proof/chassis_evolution_conformance"},
       {:chassis_inventory, path: "../../core/chassis_inventory"},
       {:chassis_mezzanine_bridge, path: "../../governance/chassis_mezzanine_bridge"},
       {:chassis_secret_sops, path: "../../secrets/chassis_secret_sops"},

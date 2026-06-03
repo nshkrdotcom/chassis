@@ -606,3 +606,58 @@ defmodule Chassis.CLI.Command.Proof.Run do
   def run(_positional, _switches),
     do: {:error, {:not_implemented, __MODULE__, [phase: 21, package: :chassis_stacklab_bridge]}}
 end
+
+defmodule Chassis.CLI.Command.Evolution.Fixture do
+  @moduledoc "Runs a Phase 36 evolution conformance scenario through the proof package."
+  @behaviour Chassis.CLI.Command
+
+  alias Chassis.Evolution.Conformance
+  alias Chassis.Evolution.Conformance.Evidence
+
+  @impl true
+  def run(_positional, switches) do
+    case Map.get(switches, :scenario) do
+      nil ->
+        {:error, %{reason: "missing --scenario"}}
+
+      scenario ->
+        opts =
+          switches
+          |> Map.take([:receipts_dir])
+          |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+
+        with {:ok, report} <- Conformance.run(scenario, opts) do
+          {:ok, Evidence.jsonable(report)}
+        end
+    end
+  end
+end
+
+defmodule Chassis.CLI.Command.Evolution.Proof do
+  @moduledoc "Runs the Phase 36 evolution conformance proof harness."
+  @behaviour Chassis.CLI.Command
+
+  alias Chassis.Evolution.Conformance
+  alias Chassis.Evolution.Conformance.Evidence
+
+  @impl true
+  def run(_positional, switches) do
+    opts =
+      switches
+      |> Map.take([
+        :app,
+        :profile,
+        :env,
+        :fixture,
+        :require_trial,
+        :require_citadel_consent,
+        :require_health_gated_swap,
+        :require_rollback_proof
+      ])
+      |> Map.to_list()
+
+    with {:ok, report} <- Conformance.proof(opts) do
+      {:ok, Evidence.jsonable(report)}
+    end
+  end
+end

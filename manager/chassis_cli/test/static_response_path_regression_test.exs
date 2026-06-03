@@ -52,6 +52,7 @@ defmodule Chassis.CLI.StaticResponsePathRegressionTest do
     "evolution.score.show",
     "evolution.apply",
     "evolution.fixture",
+    "evolution.proof",
     "hardware.validate",
     "model.materialize",
     "model.cache.list",
@@ -144,6 +145,50 @@ defmodule Chassis.CLI.StaticResponsePathRegressionTest do
   end
 
   describe "router refuses to fabricate success" do
+    test "phase 36 evolution fixture dispatches to conformance scenario logic" do
+      {code, payload} =
+        CLI.dispatch([
+          "evolution.fixture",
+          "--scenario",
+          "source_level_patch_success",
+          "--json"
+        ])
+
+      assert code == 0
+      assert payload["scenario"] == "source_level_patch_success"
+      assert payload["final_state"] == "committed"
+      assert length(payload["spans"]) == 16
+      refute Map.has_key?(payload, :error)
+    end
+
+    test "phase 36 evolution proof dispatches to the full conformance runner" do
+      {code, payload} =
+        CLI.dispatch([
+          "evolution.proof",
+          "--app",
+          "extravaganza",
+          "--profile",
+          "profile:ternary-split-3",
+          "--env",
+          "prod",
+          "--fixture",
+          "fixture:source_level_repair_001",
+          "--require-trial",
+          "--require-citadel-consent",
+          "--require-health-gated-swap",
+          "--require-rollback-proof",
+          "--json"
+        ])
+
+      assert code == 0
+      assert payload["passed"] == 12
+      assert payload["failed"] == 0
+      assert payload["requirements"]["trial"]
+      assert payload["requirements"]["rollback_proof"]
+      assert length(payload["scenarios"]) == 12
+      refute Map.has_key?(payload, :error)
+    end
+
     test "stack.deploy never turns an invalid profile into a baked active response" do
       {_code, payload} =
         CLI.dispatch([

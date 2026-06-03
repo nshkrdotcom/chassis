@@ -5,19 +5,6 @@ defmodule Mix.Tasks.Chassis.Stack.Deploy do
   def run(args), do: Chassis.MixTaskSupport.run_cli(["stack.deploy" | args])
 end
 
-defmodule Mix.Tasks.Chassis.Evolution.Proof do
-  use Mix.Task
-  @shortdoc "Run Chassis evolution proof smoke"
-  @impl true
-  def run(args),
-    do:
-      Chassis.MixTaskSupport.run_cli([
-        "evolution.fixture",
-        "--scenario",
-        "source_level_patch_success" | args
-      ])
-end
-
 defmodule Mix.Tasks.Chassis.Model.Materialize do
   use Mix.Task
   @shortdoc "Materialize model weights"
@@ -37,13 +24,6 @@ defmodule Mix.Tasks.Chassis.Boundary.Conformance do
   @shortdoc "Run Chassis boundary conformance"
   @impl true
   def run(args), do: Chassis.MixTaskSupport.run_cli(["boundary.conformance" | args])
-end
-
-defmodule Mix.Tasks.Chassis.Evolution.Fixture do
-  use Mix.Task
-  @shortdoc "Run one Chassis evolution fixture"
-  @impl true
-  def run(args), do: Chassis.MixTaskSupport.run_cli(["evolution.fixture" | args])
 end
 
 defmodule Mix.Tasks.Chassis.Model.Fixture do

@@ -18,5 +18,10 @@ defmodule Chassis.Evolution.Conformance.MixProject do
     ]
   end
 
-  defp deps, do: []
+  defp deps do
+    [
+      {:chassis_metrics, path: "../../observability/chassis_metrics"},
+      {:jason, "~> 1.4"}
+    ]
+  end
 end

@@ -90,6 +90,8 @@ defmodule Chassis.CLI do
       {Chassis.CLI.Command.Evolution.Apply, phase: 34, package: :chassis_evolution_core},
     "evolution.fixture" =>
       {Chassis.CLI.Command.Evolution.Fixture, phase: 36, package: :chassis_evolution_conformance},
+    "evolution.proof" =>
+      {Chassis.CLI.Command.Evolution.Proof, phase: 36, package: :chassis_evolution_conformance},
     "hardware.validate" =>
       {Chassis.CLI.Command.Hardware.Validate, phase: 41, package: :chassis_hardware_guard},
     "model.materialize" =>
@@ -187,6 +189,8 @@ defmodule Chassis.CLI do
         strict: [
           dry_run: :boolean,
           env: :string,
+          app: :string,
+          fixture: :string,
           from: :string,
           git_sha: :string,
           host: :string,
@@ -199,9 +203,15 @@ defmodule Chassis.CLI do
           no_mezzanine: :boolean,
           plaintext_vault: :boolean,
           profile: :string,
+          receipts_dir: :string,
+          require_citadel_consent: :boolean,
+          require_health_gated_swap: :boolean,
+          require_rollback_proof: :boolean,
+          require_trial: :boolean,
           quota: :string,
           release_version: :string,
           residency: :string,
+          scenario: :string,
           suite: :string,
           tenant: :string,
           to: :string,
