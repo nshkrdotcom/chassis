@@ -18,5 +18,9 @@ defmodule Chassis.Weight.Materializer.MixProject do
     ]
   end
 
-  defp deps, do: []
+  defp deps do
+    [
+      {:chassis_hf_hub, path: "../../adapters/chassis_hf_hub"}
+    ]
+  end
 end

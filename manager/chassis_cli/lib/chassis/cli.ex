@@ -95,9 +95,9 @@ defmodule Chassis.CLI do
     "hardware.validate" =>
       {Chassis.CLI.Command.Hardware.Validate, phase: 37, package: :chassis_hardware_guard},
     "model.materialize" =>
-      {Chassis.CLI.Command.Model.Materialize, phase: 40, package: :chassis_weight_materializer},
+      {Chassis.CLI.Command.Model.Materialize, phase: 38, package: :chassis_weight_materializer},
     "model.cache.list" =>
-      {Chassis.CLI.Command.Model.CacheList, phase: 40, package: :chassis_model_cache},
+      {Chassis.CLI.Command.Model.CacheList, phase: 39, package: :chassis_model_cache},
     "model.fixture" =>
       {Chassis.CLI.Command.Model.Fixture, phase: 41, package: :chassis_model_asset_conformance},
     "tensor.reload" =>
@@ -200,6 +200,7 @@ defmodule Chassis.CLI do
           isolation: :string,
           json: :boolean,
           material_file: :string,
+          model: :string,
           no_mezzanine: :boolean,
           plaintext_vault: :boolean,
           profile: :string,
@@ -214,9 +215,11 @@ defmodule Chassis.CLI do
           runtime: :string,
           scenario: :string,
           suite: :string,
+          target: :string,
           tenant: :string,
           to: :string,
-          vault_path: :string
+          vault_path: :string,
+          verify_sha256: :boolean
         ],
         aliases: [p: :profile]
       )

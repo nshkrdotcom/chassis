@@ -81,9 +81,9 @@ defmodule Chassis.CLI do
     "hardware.validate" =>
       {Chassis.CLI.Command.Hardware.Validate, phase: 37, package: :chassis_hardware_guard},
     "model.materialize" =>
-      {Chassis.CLI.Command.Model.Materialize, phase: 40, package: :chassis_weight_materializer},
+      {Chassis.CLI.Command.Model.Materialize, phase: 38, package: :chassis_weight_materializer},
     "model.cache.list" =>
-      {Chassis.CLI.Command.Model.CacheList, phase: 40, package: :chassis_model_cache},
+      {Chassis.CLI.Command.Model.CacheList, phase: 39, package: :chassis_model_cache},
     "model.fixture" =>
       {Chassis.CLI.Command.Model.Fixture, phase: 41, package: :chassis_model_asset_conformance},
     "tensor.reload" =>

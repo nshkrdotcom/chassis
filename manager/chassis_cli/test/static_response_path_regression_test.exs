@@ -136,11 +136,11 @@ defmodule Chassis.CLI.StaticResponsePathRegressionTest do
     end
 
     test "future commands with no Phase 20 module still return the router not_implemented payload" do
-      {_code, payload} = CLI.dispatch(["model.materialize"])
+      {_code, payload} = CLI.dispatch(["model.cache.list"])
       assert payload.error == "not_implemented"
       refute Map.get(payload, :routed?, false)
-      assert payload.phase_gate == 40
-      assert payload.package == :chassis_weight_materializer
+      assert payload.phase_gate == 39
+      assert payload.package == :chassis_model_cache
     end
   end
 
@@ -207,6 +207,28 @@ defmodule Chassis.CLI.StaticResponsePathRegressionTest do
       assert "gpu_vendor_mismatch" in payload["reason_codes"]
       assert "container_gpu_runtime_missing" in payload["reason_codes"]
       assert payload["placement_allowed?"] == false
+      refute Map.has_key?(payload, :error)
+    end
+
+    test "phase 38 model.materialize dispatches to target-host materialization logic" do
+      {code, payload} =
+        CLI.dispatch([
+          "model.materialize",
+          "--model",
+          "model:hf:qwen3-small-fixture",
+          "--target",
+          "host:gpu-fixture",
+          "--verify-sha256",
+          "--dry-run",
+          "--json"
+        ])
+
+      assert code == 0
+      assert payload["model_ref"] == "model:hf:qwen3-small-fixture"
+      assert payload["target_host_ref"] == "host:gpu-fixture"
+      assert payload["digest_verified"] == true
+      assert payload["bytes_via_beam_control?"] == false
+      assert payload["cache_write_event"]["status"] == "deferred_phase_39"
       refute Map.has_key?(payload, :error)
     end
 
