@@ -1,0 +1,21 @@
+[Unit]
+Description=Nshkr Chassis Host Daemon
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=notify
+User=nshkr_chassis_host
+Group=nshkr_chassis_host
+RuntimeDirectory=nshkr-chassis-host
+RuntimeDirectoryMode=0770
+ExecStart=/usr/local/bin/chassis_host_daemon
+Restart=on-failure
+RestartSec=5s
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

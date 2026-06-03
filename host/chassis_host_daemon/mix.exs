@@ -18,5 +18,11 @@ defmodule Chassis.Host.Daemon.MixProject do
     ]
   end
 
-  defp deps, do: []
+  defp deps do
+    [
+      {:chassis_boundary, path: "../../core/chassis_boundary"},
+      {:chassis_policy_boundary, path: "../../core/chassis_policy_boundary"},
+      {:jason, "~> 1.4"}
+    ]
+  end
 end
