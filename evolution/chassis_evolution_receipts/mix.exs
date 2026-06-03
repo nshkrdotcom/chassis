@@ -14,9 +14,13 @@ defmodule Chassis.Evolution.Receipts.MixProject do
 
   def application do
     [
-      extra_applications: [:logger, :crypto, :public_key, :ssh]
+      extra_applications: [:logger]
     ]
   end
 
-  defp deps, do: []
+  defp deps do
+    [
+      {:chassis_evolution_contracts, path: "../chassis_evolution_contracts"}
+    ]
+  end
 end
