@@ -119,6 +119,7 @@ defmodule Chassis.StackManager.Transaction do
   alias Chassis.Receipts.{DeploymentRecord, RollbackRecord, Store}
   alias Chassis.Stack.{Composer, ProfileResolver}
   alias Chassis.StackManager.{CheckpointStore, FenceStore}
+  alias Chassis.Tenant.{Isolation, Quota, QuotaGuard, Residency, TopologyGuard}
   alias GroundPlane.Contracts.{Checkpoint, Fence}
 
   @steps [
@@ -139,6 +140,17 @@ defmodule Chassis.StackManager.Transaction do
   @spec run(keyword() | map()) :: {:ok, map()} | {:error, term()}
   def run(attrs) do
     opts = normalize_opts(attrs)
+
+    case require_tenant_context(opts) do
+      :ok ->
+        run_with_fence(opts)
+
+      {:error, _reason} = error ->
+        error
+    end
+  end
+
+  defp run_with_fence(opts) do
     idempotency_key = Map.get(opts, :idempotency_key) || default_idempotency_key(opts)
     fence = build_fence(idempotency_key, opts)
     fence_store = Map.get(opts, :fence_store, FenceStore)
@@ -203,6 +215,9 @@ defmodule Chassis.StackManager.Transaction do
   defp do_run(opts, idempotency_key, fence) do
     with {:ok, resolved} <- resolve_profile(opts),
          {:ok, hosts} <- discover_hosts(opts),
+         {:ok, quota} <- tenant_quota(opts),
+         :ok <- validate_tenant_topology(opts, resolved, hosts, quota),
+         :ok <- check_tenant_quota(opts, resolved, quota),
          {:ok, topology} <- Composer.compose(resolved.profile_ref, resolved.env, hosts),
          {:ok, authority_ref} <- authorize(opts, topology),
          {:ok, _provision_result} <- provision(opts, topology),
@@ -229,6 +244,62 @@ defmodule Chassis.StackManager.Transaction do
     profile_ref = Map.fetch!(opts, :profile_ref)
     env = Map.get(opts, :env, :dev)
     ProfileResolver.resolve(profile_ref, env)
+  end
+
+  defp require_tenant_context(opts) do
+    missing =
+      [:tenant_ref, :installation_ref]
+      |> Enum.reject(fn field ->
+        case Map.get(opts, field) do
+          value when is_binary(value) and value != "" -> true
+          _ -> false
+        end
+      end)
+
+    case missing do
+      [] -> :ok
+      fields -> {:error, {:tenant_context_required, fields}}
+    end
+  end
+
+  defp validate_tenant_topology(opts, resolved, hosts, quota) do
+    with {:ok, residency} <- tenant_residency(opts),
+         {:ok, isolation} <- tenant_isolation(opts),
+         {:ok, result} <-
+           TopologyGuard.validate(%{
+             profile: resolved,
+             tenant_ref: Map.get(opts, :tenant_ref),
+             installation_ref: Map.get(opts, :installation_ref),
+             residency_contract: residency,
+             isolation_profile: isolation,
+             resource_quota: quota,
+             hosts: hosts,
+             authority_ref: Map.get(opts, :authority_ref),
+             trace_id: Map.get(opts, :trace_id)
+           }) do
+      if result.valid?, do: :ok, else: {:error, {:topology_invalid, result.errors}}
+    end
+  end
+
+  defp check_tenant_quota(opts, resolved, quota) do
+    requested = Map.get(opts, :requested_resources, TopologyGuard.required_resources(resolved))
+
+    case QuotaGuard.check(quota, requested) do
+      {:ok, %{allowed?: true}} -> :ok
+      {:ok, %{allowed?: false} = decision} -> {:error, {:quota_exceeded, decision}}
+    end
+  end
+
+  defp tenant_residency(opts),
+    do: Residency.Catalog.fetch(Map.get(opts, :residency_ref, "residency:global"))
+
+  defp tenant_isolation(opts),
+    do: Isolation.Catalog.fetch(Map.get(opts, :isolation_profile_ref, "isolation:dev-shared"))
+
+  defp tenant_quota(opts) do
+    with {:ok, quota} <- Quota.Catalog.fetch(Map.get(opts, :quota_ref, "quota:tenant:enterprise")) do
+      {:ok, %{quota | tenant_ref: Map.get(opts, :tenant_ref)}}
+    end
   end
 
   defp discover_hosts(%{discover_hosts: fun}) when is_function(fun, 0), do: fun.()

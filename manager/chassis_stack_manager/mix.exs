@@ -24,6 +24,7 @@ defmodule Chassis.Stack.Manager.MixProject do
       {:chassis_receipts, path: "../../core/chassis_receipts"},
       {:chassis_releases, path: "../../core/chassis_releases"},
       {:chassis_stack, path: "../../core/chassis_stack"},
+      {:chassis_tenant, path: "../../core/chassis_tenant"},
       {:ground_plane_contracts, path: "../../../ground_plane/core/ground_plane_contracts"}
     ]
   end
