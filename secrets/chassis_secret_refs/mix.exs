@@ -18,5 +18,9 @@ defmodule Chassis.Secret.Refs.MixProject do
     ]
   end
 
-  defp deps, do: []
+  defp deps do
+    [
+      {:jason, "~> 1.4"}
+    ]
+  end
 end

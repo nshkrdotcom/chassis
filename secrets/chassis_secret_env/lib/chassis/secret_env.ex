@@ -1,33 +1,39 @@
 defmodule Chassis.Secrets.Materializer.Env do
-  @moduledoc "Environment-variable materializer."
-  @spec materialize(map(), keyword()) :: {:ok, map()} | {:error, :missing_env_secret}
-  def materialize(secret_ref, opts \\ []) do
-    env =
-      Keyword.get(
-        opts,
-        :env,
-        "CHASSIS_SECRET_" <>
-          String.upcase(
-            String.replace(Map.get(secret_ref, :secret_ref, "default"), ~r/[^A-Za-z0-9]/, "_")
-          )
-      )
+  @moduledoc """
+  Environment-variable secret materializer.
 
-    case System.get_env(env) do
-      nil ->
-        {:error, :missing_env_secret}
+  This backend is for local development and process-injected secrets. It never
+  derives fallback material: if the env var is missing, materialization fails.
+  """
 
-      material ->
-        {:ok,
-         %{
-           lease_ref: "lease:env:" <> env,
-           secret_ref: Map.get(secret_ref, :secret_ref),
-           material: material,
-           expires_at: DateTime.add(DateTime.utc_now(), 300)
-         }}
+  @behaviour Chassis.Secrets.Materializer
+
+  alias Chassis.Secrets.{SecretLease, SecretRef}
+
+  @impl true
+  @spec materialize(SecretRef.t(), keyword()) :: {:ok, SecretLease.t()} | {:error, term()}
+  def materialize(ref, opts \\ [])
+
+  def materialize(%SecretRef{backend: :env, key: env_var} = ref, opts) do
+    with {:ok, _consumer_ref} <- SecretLease.fetch_consumer(opts),
+         {:ok, material} <- fetch_env(env_var) do
+      SecretLease.new(ref, material, opts)
     end
   end
-end
 
-defmodule Chassis.SecretEnv do
-  @moduledoc "Package marker."
+  def materialize(%SecretRef{backend: backend}, _opts),
+    do: {:error, {:unsupported_backend, backend}}
+
+  def materialize(_ref, _opts), do: {:error, {:invalid_secret_ref, :expected_secret_ref}}
+
+  @impl true
+  @spec revoke(SecretLease.t()) :: :ok
+  def revoke(%SecretLease{}), do: :ok
+
+  defp fetch_env(env_var) do
+    case System.get_env(env_var) do
+      nil -> {:error, {:env_var_unset, env_var}}
+      value -> {:ok, value}
+    end
+  end
 end

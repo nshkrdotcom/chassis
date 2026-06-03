@@ -18,5 +18,11 @@ defmodule Chassis.Secret.Sops.MixProject do
     ]
   end
 
-  defp deps, do: []
+  defp deps do
+    [
+      {:chassis_secret_refs, path: "../chassis_secret_refs"},
+      {:chassis_receipts, path: "../../core/chassis_receipts"},
+      {:jason, "~> 1.4"}
+    ]
+  end
 end

@@ -18,5 +18,9 @@ defmodule Chassis.Secret.Vault.MixProject do
     ]
   end
 
-  defp deps, do: []
+  defp deps do
+    [
+      {:chassis_secret_refs, path: "../chassis_secret_refs"}
+    ]
+  end
 end
