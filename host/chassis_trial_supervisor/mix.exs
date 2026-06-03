@@ -14,7 +14,7 @@ defmodule Chassis.Trial.Supervisor.MixProject do
 
   def application do
     [
-      extra_applications: [:logger, :crypto, :public_key, :ssh]
+      extra_applications: [:logger]
     ]
   end
 
