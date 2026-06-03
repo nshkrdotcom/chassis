@@ -18,5 +18,11 @@ defmodule Chassis.Swap.Supervisor.MixProject do
     ]
   end
 
-  defp deps, do: []
+  defp deps do
+    [
+      {:chassis_evolution_contracts, path: "../../evolution/chassis_evolution_contracts"},
+      {:chassis_releases, path: "../../core/chassis_releases"},
+      {:jason, "~> 1.4"}
+    ]
+  end
 end
