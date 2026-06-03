@@ -10,7 +10,7 @@ defmodule Chassis.Workspace.RootCLIStaticResponsePathRegressionTest do
 
   This test must remain green for the entire buildout.
   """
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   @sample_commands [
     "stack.deploy",
@@ -86,6 +86,23 @@ defmodule Chassis.Workspace.RootCLIStaticResponsePathRegressionTest do
                    "active root command #{command} did not stamp :command"
         end
       end
+    end
+
+    test "boundary scan and conformance root commands execute package-owned logic" do
+      {scan_code, scan} = Chassis.CLI.dispatch(["boundary.scan"])
+      assert scan_code == 0
+      assert scan.command == "boundary.scan"
+      assert scan.protocol_count == 8
+
+      assert "boundary:mezzanine.chassis.materialize_deployment:v1" in scan.protocol_refs
+      assert scan.missing_modules == []
+      assert scan.incomplete_adapter_specs == []
+
+      {conformance_code, conformance} = Chassis.CLI.dispatch(["boundary.conformance"])
+      assert conformance_code == 0
+      assert conformance.command == "boundary.conformance"
+      assert "codec.rejects_pid_payloads" in conformance.passed
+      assert conformance.failed == []
     end
 
     test "unknown command returns the structured unknown_command map" do

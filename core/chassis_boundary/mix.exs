@@ -18,5 +18,10 @@ defmodule Chassis.Boundary.MixProject do
     ]
   end
 
-  defp deps, do: []
+  defp deps do
+    [
+      {:ground_plane_contracts, path: "../../../ground_plane/core/ground_plane_contracts"},
+      {:chassis_secret_refs, path: "../../secrets/chassis_secret_refs"}
+    ]
+  end
 end
