@@ -136,11 +136,11 @@ defmodule Chassis.CLI.StaticResponsePathRegressionTest do
     end
 
     test "future commands with no Phase 20 module still return the router not_implemented payload" do
-      {_code, payload} = CLI.dispatch(["tensor.reload"])
+      {_code, payload} = CLI.dispatch(["model.fixture"])
       assert payload.error == "not_implemented"
       refute Map.get(payload, :routed?, false)
-      assert payload.phase_gate == 42
-      assert payload.package == :chassis_tensor_reload
+      assert payload.phase_gate == 41
+      assert payload.package == :chassis_model_asset_conformance
     end
   end
 
@@ -261,6 +261,36 @@ defmodule Chassis.CLI.StaticResponsePathRegressionTest do
       assert payload["root"] == "/var/cache/nshkr/models"
       assert payload["mode"] == "0750"
       refute Map.has_key?(payload, :error)
+    end
+
+    test "phase 40 tensor.reload and tensor.rollback dispatch to tensor reload logic" do
+      {reload_code, reload_payload} =
+        CLI.dispatch([
+          "tensor.reload",
+          "--runtime",
+          "runtime:crucible_bumblebee:cuda-small",
+          "--patch",
+          "patch:fixture:lora_001",
+          "--json"
+        ])
+
+      assert reload_code == 0
+      assert reload_payload["strategy_applied"] == "hot_reload"
+      assert reload_payload["outcome"] == "committed"
+
+      {rollback_code, rollback_payload} =
+        CLI.dispatch([
+          "tensor.rollback",
+          "--runtime",
+          "runtime:crucible_bumblebee:cuda-small",
+          "--patch",
+          "patch:fixture:lora_001",
+          "--json"
+        ])
+
+      assert rollback_code == 0
+      assert rollback_payload["restored_patch_digest"] == "sha256:rollback:lora_001"
+      refute Map.has_key?(rollback_payload, :error)
     end
 
     test "stack.deploy never turns an invalid profile into a baked active response" do

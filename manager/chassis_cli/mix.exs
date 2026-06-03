@@ -35,6 +35,7 @@ defmodule Chassis.Cli.MixProject do
       {:chassis_model_cache, path: "../../model/chassis_model_cache"},
       {:chassis_secret_sops, path: "../../secrets/chassis_secret_sops"},
       {:chassis_stack_manager, path: "../chassis_stack_manager"},
+      {:chassis_tensor_reload, path: "../../model/chassis_tensor_reload"},
       {:chassis_weight_materializer, path: "../../model/chassis_weight_materializer"},
       {:jason, "~> 1.4"}
     ]

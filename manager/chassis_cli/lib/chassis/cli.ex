@@ -101,9 +101,9 @@ defmodule Chassis.CLI do
     "model.fixture" =>
       {Chassis.CLI.Command.Model.Fixture, phase: 41, package: :chassis_model_asset_conformance},
     "tensor.reload" =>
-      {Chassis.CLI.Command.Tensor.Reload, phase: 42, package: :chassis_tensor_reload},
+      {Chassis.CLI.Command.Tensor.Reload, phase: 40, package: :chassis_tensor_reload},
     "tensor.rollback" =>
-      {Chassis.CLI.Command.Tensor.Rollback, phase: 42, package: :chassis_tensor_reload},
+      {Chassis.CLI.Command.Tensor.Rollback, phase: 40, package: :chassis_tensor_reload},
     "boundary.scan" => {Chassis.CLI.Command.Boundary.Scan, phase: 9, package: :chassis_boundary},
     "boundary.conformance" =>
       {Chassis.CLI.Command.Boundary.Conformance, phase: 21, package: :chassis_conformance}
@@ -202,6 +202,7 @@ defmodule Chassis.CLI do
           material_file: :string,
           model: :string,
           no_mezzanine: :boolean,
+          patch: :string,
           plaintext_vault: :boolean,
           profile: :string,
           receipts_dir: :string,

@@ -39,6 +39,7 @@ defmodule Chassis.Workspace.MixProject do
       {:chassis_evolution_conformance, path: "proof/chassis_evolution_conformance"},
       {:chassis_hardware_guard, path: "model/chassis_hardware_guard"},
       {:chassis_model_cache, path: "model/chassis_model_cache"},
+      {:chassis_tensor_reload, path: "model/chassis_tensor_reload"},
       {:chassis_weight_materializer, path: "model/chassis_weight_materializer"},
       {:weld, "~> 0.8.2", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
