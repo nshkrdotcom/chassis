@@ -56,3 +56,23 @@ defmodule Chassis.CLI.Command.Model.CacheList do
     end
   end
 end
+
+defmodule Chassis.CLI.Command.Model.Fixture do
+  @moduledoc "Root CLI command for Phase 41 model asset conformance fixtures."
+
+  alias Chassis.ModelAsset.Conformance
+  alias Chassis.ModelAsset.Conformance.Evidence
+
+  @spec run([String.t()], map()) :: {:ok, map()} | {:error, term()}
+  def run(positional, switches) do
+    scenario = Map.get(switches, :scenario) || Enum.at(positional, 0)
+
+    if is_nil(scenario) do
+      {:error, %{reason: "missing --scenario"}}
+    else
+      with {:ok, report} <- Conformance.run(scenario) do
+        {:ok, Evidence.jsonable(report)}
+      end
+    end
+  end
+end

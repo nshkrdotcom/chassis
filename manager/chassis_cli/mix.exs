@@ -32,6 +32,7 @@ defmodule Chassis.Cli.MixProject do
       {:chassis_hardware_guard, path: "../../model/chassis_hardware_guard"},
       {:chassis_inventory, path: "../../core/chassis_inventory"},
       {:chassis_mezzanine_bridge, path: "../../governance/chassis_mezzanine_bridge"},
+      {:chassis_model_asset_conformance, path: "../../proof/chassis_model_asset_conformance"},
       {:chassis_model_cache, path: "../../model/chassis_model_cache"},
       {:chassis_secret_sops, path: "../../secrets/chassis_secret_sops"},
       {:chassis_stack_manager, path: "../chassis_stack_manager"},

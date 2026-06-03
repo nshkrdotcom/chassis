@@ -18,5 +18,12 @@ defmodule Chassis.Model.Asset.Conformance.MixProject do
     ]
   end
 
-  defp deps, do: []
+  defp deps do
+    [
+      {:chassis_hardware_guard, path: "../../model/chassis_hardware_guard"},
+      {:chassis_tensor_reload, path: "../../model/chassis_tensor_reload"},
+      {:chassis_weight_materializer, path: "../../model/chassis_weight_materializer"},
+      {:jason, "~> 1.4"}
+    ]
+  end
 end

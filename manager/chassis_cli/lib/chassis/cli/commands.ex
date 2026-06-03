@@ -751,6 +751,27 @@ defmodule Chassis.CLI.Command.Model.CacheList do
   end
 end
 
+defmodule Chassis.CLI.Command.Model.Fixture do
+  @moduledoc "Runs the Phase 41 model asset conformance scenario harness."
+  @behaviour Chassis.CLI.Command
+
+  alias Chassis.ModelAsset.Conformance
+  alias Chassis.ModelAsset.Conformance.Evidence
+
+  @impl true
+  def run(positional, switches) do
+    scenario = Map.get(switches, :scenario) || Enum.at(positional, 0)
+
+    if is_nil(scenario) do
+      {:error, %{reason: "missing --scenario"}}
+    else
+      with {:ok, report} <- Conformance.run(scenario) do
+        {:ok, Evidence.jsonable(report)}
+      end
+    end
+  end
+end
+
 defmodule Chassis.CLI.Command.Tensor.Reload do
   @moduledoc "Runs the Phase 40 tensor patch reload lifecycle."
   @behaviour Chassis.CLI.Command

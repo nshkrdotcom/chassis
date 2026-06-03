@@ -135,12 +135,12 @@ defmodule Chassis.CLI.StaticResponsePathRegressionTest do
       assert payload.module == "Chassis.CLI.Command.Proof.Run"
     end
 
-    test "future commands with no Phase 20 module still return the router not_implemented payload" do
-      {_code, payload} = CLI.dispatch(["model.fixture"])
+    test "future routed placeholders still return the canonical not_implemented payload" do
+      {_code, payload} = CLI.dispatch(["proof.run"])
       assert payload.error == "not_implemented"
-      refute Map.get(payload, :routed?, false)
-      assert payload.phase_gate == 41
-      assert payload.package == :chassis_model_asset_conformance
+      assert payload.routed?
+      assert payload.phase_gate == 21
+      assert payload.package == :chassis_stacklab_bridge
     end
   end
 
@@ -291,6 +291,23 @@ defmodule Chassis.CLI.StaticResponsePathRegressionTest do
       assert rollback_code == 0
       assert rollback_payload["restored_patch_digest"] == "sha256:rollback:lora_001"
       refute Map.has_key?(rollback_payload, :error)
+    end
+
+    test "phase 41 model.fixture dispatches to model asset conformance logic" do
+      {code, payload} =
+        CLI.dispatch([
+          "model.fixture",
+          "--scenario",
+          "hf_weight_materialization",
+          "--json"
+        ])
+
+      assert code == 0
+      assert payload["scenario"] == "hf_weight_materialization"
+      assert payload["digest_verified"] == true
+      assert payload["bytes_via_beam_control?"] == false
+      assert payload["control_channel_bytes"] == 0
+      refute Map.has_key?(payload, :error)
     end
 
     test "stack.deploy never turns an invalid profile into a baked active response" do

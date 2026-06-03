@@ -26,13 +26,6 @@ defmodule Mix.Tasks.Chassis.Boundary.Conformance do
   def run(args), do: Chassis.MixTaskSupport.run_cli(["boundary.conformance" | args])
 end
 
-defmodule Mix.Tasks.Chassis.Model.Fixture do
-  use Mix.Task
-  @shortdoc "Run one Chassis model fixture"
-  @impl true
-  def run(args), do: Chassis.MixTaskSupport.run_cli(["model.fixture" | args])
-end
-
 defmodule Mix.Tasks.Burrito.Build do
   use Mix.Task
   @shortdoc "Create placeholder Burrito build artifacts for local smoke"
