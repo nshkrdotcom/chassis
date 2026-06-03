@@ -226,6 +226,43 @@ defmodule Chassis.Mezzanine.BridgeTest do
     assert [%{status: :delivered}] = Outbox.list(ctx.outbox)
   end
 
+  test "evolution failure batch boundary publishes typed outbox entry", ctx do
+    {:ok, receipts_store} = Chassis.Evolution.Receipts.Store.Memory.start_link(name: nil)
+
+    assert {:ok, response} =
+             Bridge.dispatch(
+               :create_failure_batch,
+               %{
+                 "tenant_ref" => "tenant:dev",
+                 "installation_ref" => "installation:acme:demo",
+                 "evidence_refs" => ["ev:smoke:1"],
+                 "summary" => %{"bytes" => "bounded smoke", "max_bytes" => 128},
+                 "redaction_posture" => "default",
+                 "raw_body" => "RAW SECRET"
+               },
+               envelope_attrs(),
+               boundary_dispatcher: Chassis.Mezzanine.Bridge.Evolution.LocalDispatcher,
+               receipts_store: receipts_store,
+               outbox: ctx.outbox
+             )
+
+    assert %{
+             failure_batch_ref: failure_batch_ref,
+             receipt_ref: receipt_ref,
+             status: "ok"
+           } = response.payload
+
+    assert failure_batch_ref =~ "failure-batch:"
+    assert receipt_ref =~ "receipt:failure_batch:"
+
+    assert [%Outbox.Entry{} = event] = Outbox.list(ctx.outbox)
+    assert event.projection == :chassis_evolution
+    assert event.primary_ref == failure_batch_ref
+    assert event.payload.failure_batch_ref == failure_batch_ref
+    assert event.payload.receipt_ref == receipt_ref
+    refute inspect(event) =~ "RAW SECRET"
+  end
+
   defp envelope_attrs do
     %{
       envelope_ref: "env:phase16:" <> unique(),

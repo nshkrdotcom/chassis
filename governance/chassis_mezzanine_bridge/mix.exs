@@ -23,6 +23,7 @@ defmodule Chassis.Mezzanine.Bridge.MixProject do
       {:chassis_boundary, path: "../../core/chassis_boundary"},
       {:chassis_projection, path: "../../core/chassis_projection"},
       {:chassis_receipts, path: "../../core/chassis_receipts"},
+      {:chassis_evolution_receipts, path: "../../evolution/chassis_evolution_receipts"},
       {:chassis_releases, path: "../../core/chassis_releases"},
       {:chassis_stack_manager, path: "../../manager/chassis_stack_manager"}
     ]

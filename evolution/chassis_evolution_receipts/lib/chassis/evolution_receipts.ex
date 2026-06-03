@@ -459,6 +459,19 @@ defmodule Chassis.Evolution.Receipts.AfterActions do
 
   alias Chassis.Evolution.Receipts.AfterActions.Recorder
 
+  @sensitive_keys MapSet.new([
+                    :raw_transcript,
+                    :raw_body,
+                    :raw_bytes,
+                    :raw_provider_token,
+                    :provider_token,
+                    :raw_prompt,
+                    :raw_diff,
+                    :transcript,
+                    :body,
+                    :payload
+                  ])
+
   @spec stub_callbacks(pid() | atom()) :: [(struct() -> :ok)]
   def stub_callbacks(recorder) do
     [
@@ -467,6 +480,33 @@ defmodule Chassis.Evolution.Receipts.AfterActions do
       &record_surface(recorder, :mezzanine_outbox, &1),
       &record_surface(recorder, :appkit_projection, &1)
     ]
+  end
+
+  @spec projection_hook((map() -> :ok | {:ok, term()} | {:error, term()})) ::
+          (struct() -> :ok | {:error, term()})
+  def projection_hook(publisher) when is_function(publisher, 1) do
+    fn record ->
+      record
+      |> projection_event()
+      |> publisher.()
+      |> normalize_callback_result()
+    end
+  end
+
+  @spec projection_event(struct()) :: map()
+  def projection_event(record) when is_map(record) do
+    payload = safe_payload(record)
+
+    %{
+      projection: projection_for(record),
+      primary_ref: primary_ref(record, payload),
+      payload: payload,
+      trace_id: Map.get(payload, :trace_id),
+      tenant_ref: Map.get(payload, :tenant_ref),
+      installation_ref: Map.get(payload, :installation_ref),
+      correlation_id: Map.get(payload, :receipt_ref),
+      idempotency_key: Map.get(payload, :receipt_ref)
+    }
   end
 
   defp record_surface(recorder, surface, record) do
@@ -478,6 +518,99 @@ defmodule Chassis.Evolution.Receipts.AfterActions do
       candidate_ref: Map.get(record, :candidate_ref),
       trace_id: Map.get(record, :trace_id)
     })
+  end
+
+  defp normalize_callback_result(:ok), do: :ok
+  defp normalize_callback_result({:ok, _value}), do: :ok
+  defp normalize_callback_result({:error, reason}), do: {:error, reason}
+  defp normalize_callback_result(other), do: {:error, {:invalid_after_action_result, other}}
+
+  defp projection_for(%Chassis.Evolution.Receipts.FailureBatchRecord{}), do: :chassis_evolution
+  defp projection_for(%Chassis.Evolution.Receipts.EvolutionStartRecord{}), do: :chassis_evolution
+  defp projection_for(%Chassis.Evolution.Receipts.EvolutionStopRecord{}), do: :chassis_evolution
+  defp projection_for(%Chassis.Evolution.Receipts.CandidatePatchRecord{}), do: :chassis_candidate
+  defp projection_for(%Chassis.Evolution.Receipts.CodingAgentRunRecord{}), do: :chassis_candidate
+  defp projection_for(%Chassis.Evolution.Receipts.TrialRunRecord{}), do: :chassis_trial
+  defp projection_for(%Chassis.Evolution.Receipts.ScoreMatrixRecord{}), do: :chassis_score_matrix
+  defp projection_for(%Chassis.Evolution.Receipts.PromotionIntentRecord{}), do: :chassis_promotion
+  defp projection_for(%Chassis.Evolution.Receipts.PromotionRecord{}), do: :chassis_promotion
+  defp projection_for(%Chassis.Evolution.Receipts.OperatorConsentRecord{}), do: :chassis_promotion
+  defp projection_for(%Chassis.Evolution.Receipts.SwapRecord{}), do: :chassis_swap
+  defp projection_for(%Chassis.Evolution.Receipts.EvolutionRollbackRecord{}), do: :chassis_swap
+  defp projection_for(_record), do: :chassis_evolution
+
+  defp primary_ref(%Chassis.Evolution.Receipts.ScoreMatrixRecord{}, payload),
+    do: Map.get(payload, :score_matrix_ref)
+
+  defp primary_ref(%Chassis.Evolution.Receipts.TrialRunRecord{}, payload),
+    do: Map.get(payload, :trial_ref) || Map.get(payload, :trial_run_ref)
+
+  defp primary_ref(%Chassis.Evolution.Receipts.PromotionIntentRecord{}, payload),
+    do: Map.get(payload, :promotion_ref)
+
+  defp primary_ref(%Chassis.Evolution.Receipts.PromotionRecord{}, payload),
+    do: Map.get(payload, :promotion_ref)
+
+  defp primary_ref(%Chassis.Evolution.Receipts.OperatorConsentRecord{}, payload),
+    do: Map.get(payload, :operator_consent_ref)
+
+  defp primary_ref(%Chassis.Evolution.Receipts.SwapRecord{}, payload),
+    do: Map.get(payload, :swap_ref)
+
+  defp primary_ref(%Chassis.Evolution.Receipts.EvolutionRollbackRecord{}, payload),
+    do: Map.get(payload, :rollback_ref)
+
+  defp primary_ref(%Chassis.Evolution.Receipts.EvolutionStartRecord{}, payload),
+    do: Map.get(payload, :evolution_run_ref)
+
+  defp primary_ref(%Chassis.Evolution.Receipts.EvolutionStopRecord{}, payload),
+    do: Map.get(payload, :evolution_run_ref)
+
+  defp primary_ref(_record, payload) do
+    Enum.find_value(
+      [
+        :failure_batch_ref,
+        :candidate_ref,
+        :trial_ref,
+        :trial_run_ref,
+        :score_matrix_ref,
+        :promotion_ref,
+        :operator_consent_ref,
+        :swap_ref,
+        :rollback_ref,
+        :evolution_run_ref,
+        :receipt_ref
+      ],
+      fn key ->
+        case Map.get(payload, key) do
+          value when is_binary(value) and value != "" -> value
+          _missing -> nil
+        end
+      end
+    )
+  end
+
+  defp safe_payload(%_struct{} = record), do: record |> Map.from_struct() |> safe_payload()
+
+  defp safe_payload(map) when is_map(map) do
+    map
+    |> Enum.reject(fn {key, _value} -> sensitive_key?(key) end)
+    |> Map.new(fn {key, value} -> {key, safe_value(value)} end)
+  end
+
+  defp safe_value(%DateTime{} = value), do: value
+  defp safe_value(value) when is_map(value), do: safe_payload(value)
+  defp safe_value(value) when is_list(value), do: Enum.map(value, &safe_value/1)
+  defp safe_value(value), do: value
+
+  defp sensitive_key?(key) when is_atom(key), do: MapSet.member?(@sensitive_keys, key)
+
+  defp sensitive_key?(key) when is_binary(key) do
+    key
+    |> String.to_existing_atom()
+    |> sensitive_key?()
+  rescue
+    ArgumentError -> false
   end
 end
 

@@ -86,6 +86,35 @@ defmodule Chassis.Evolution.ReceiptsTest do
     refute inspect(events) =~ @raw_provider_token
   end
 
+  test "projection hook emits bounded Mezzanine projection events per receipt kind" do
+    test_pid = self()
+
+    projection_hook =
+      Receipts.AfterActions.projection_hook(fn event ->
+        send(test_pid, {:projection_event, event})
+        :ok
+      end)
+
+    {:ok, store} = Memory.start_link(name: nil, after_actions: [projection_hook])
+    record = ScoreMatrixRecord.new!(score_matrix_attrs())
+
+    assert {:ok, ^record} = Memory.put(store, record)
+
+    assert_receive {:projection_event,
+                    %{
+                      projection: :chassis_score_matrix,
+                      primary_ref: "score-matrix:phase35",
+                      payload: payload,
+                      tenant_ref: "tenant:dev",
+                      installation_ref: "installation:dev",
+                      trace_id: "trace:phase35"
+                    }}
+
+    assert payload.score_matrix_ref == "score-matrix:phase35"
+    assert payload.receipt_ref == record.receipt_ref
+    refute inspect(payload) =~ @raw_provider_token
+  end
+
   test "Memory and AshPostgres stores provide parity for lifecycle records" do
     {:ok, memory} = Memory.start_link(name: nil)
     {:ok, ash} = AshPostgres.start_link(name: nil)
@@ -260,11 +289,22 @@ defmodule Chassis.Evolution.ReceiptsTest do
     })
   end
 
+  defp score_matrix_attrs do
+    base_attrs(:score_matrix)
+    |> Map.merge(%{
+      score_matrix_ref: "score-matrix:phase35",
+      candidate_ref: "cand:phase35",
+      regression_gate: :passed,
+      confidence: 0.92,
+      raw_provider_token: @raw_provider_token
+    })
+  end
+
   defp base_attrs(kind) do
     %{
       tenant_ref: "tenant:dev",
       installation_ref: "installation:dev",
-      trace_id: "trace:phase24",
+      trace_id: "trace:phase35",
       receipt_kind: kind,
       summary: %{bytes: "bounded #{kind} summary", max_bytes: 256},
       inserted_at: ~U[2026-01-01 00:00:00Z]
