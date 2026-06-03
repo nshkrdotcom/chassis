@@ -14,9 +14,19 @@ defmodule Chassis.Aitrace.Bridge.MixProject do
 
   def application do
     [
-      extra_applications: [:logger, :crypto, :public_key, :ssh]
+      mod: {Chassis.AITrace.Application, []},
+      extra_applications: [:logger, :crypto],
+      env: [
+        runtime_env: Mix.env(),
+        exporters: [{AITrace.Exporter.File, directory: "/tmp/chassis_aitrace"}]
+      ]
     ]
   end
 
-  defp deps, do: []
+  defp deps do
+    [
+      {:aitrace, path: "../../../AITrace"},
+      {:jason, "~> 1.4"}
+    ]
+  end
 end
