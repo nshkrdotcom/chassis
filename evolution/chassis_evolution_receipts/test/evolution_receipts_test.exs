@@ -2,6 +2,7 @@ defmodule Chassis.Evolution.ReceiptsTest do
   use ExUnit.Case, async: false
 
   alias Chassis.Evolution.Receipts
+  alias Chassis.Evolution.Consent
   alias Chassis.Evolution.Receipts.AfterActions.Recorder
 
   alias Chassis.Evolution.Receipts.{
@@ -99,6 +100,68 @@ defmodule Chassis.Evolution.ReceiptsTest do
 
     assert Memory.list(memory, kind: CandidatePatchRecord) ==
              AshPostgres.list(ash, kind: CandidatePatchRecord)
+  end
+
+  test "Phase 30 consent helper writes OperatorConsentRecord through the receipt store" do
+    {:ok, store} = Memory.start_link(name: nil)
+
+    assert {:ok, %OperatorConsentRecord{} = record} =
+             Consent.record_operator_consent(
+               "cand:phase30",
+               "user:operator",
+               :approve,
+               %{
+                 operator_consent_ref: "operator-consent:phase30",
+                 tenant_ref: "tenant:dev",
+                 installation_ref: "installation:prod",
+                 trace_id: "trace:phase30",
+                 recorded_at: ~U[2026-06-03 10:00:00Z],
+                 justification_summary: "bounded approval",
+                 raw_body: "RAW SECRET BODY"
+               },
+               store: store
+             )
+
+    assert record.decision == :approve
+    assert record.receipt_ref == "receipt:operator_consent:operator-consent:phase30"
+    refute inspect(record) =~ "RAW SECRET BODY"
+    assert {:ok, ^record} = Memory.get(store, record.receipt_ref)
+  end
+
+  test "Phase 30 consent validation enforces approval actor kind TTL and candidate binding" do
+    record =
+      OperatorConsentRecord.new!(%{
+        operator_consent_ref: "operator-consent:phase30",
+        tenant_ref: "tenant:dev",
+        installation_ref: "installation:prod",
+        trace_id: "trace:phase30",
+        candidate_ref: "cand:phase30",
+        decision: :approve,
+        recorded_at: ~U[2026-06-03 10:00:00Z],
+        actor_ref: "user:operator"
+      })
+
+    assert {:ok, validated} =
+             Consent.validate(record,
+               candidate_ref: "cand:phase30",
+               operator_consent_ref: "operator-consent:phase30",
+               now: ~U[2026-06-03 10:30:00Z],
+               ttl_seconds: 3600
+             )
+
+    assert validated.operator_consent_ref == "operator-consent:phase30"
+
+    assert {:error, :expired} =
+             Consent.validate(record, now: ~U[2026-06-03 11:00:01Z], ttl_seconds: 3600)
+
+    assert {:error, :candidate_mismatch} =
+             Consent.validate(record, candidate_ref: "cand:other")
+
+    rejected = %{record | decision: :reject}
+    assert {:error, :not_approved} = Consent.validate(rejected)
+
+    system_actor = %{record | actor_ref: "system:daemon"}
+    assert {:error, :actor_not_user} = Consent.validate(system_actor)
   end
 
   defp lifecycle_receipt_cases do

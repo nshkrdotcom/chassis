@@ -290,6 +290,150 @@ for {name, receipt_kind, ref_field, fields, required_fields} <- [
   end
 end
 
+defmodule Chassis.Evolution.Consent do
+  @moduledoc """
+  Operator-consent helper for evolution promotion authority binding.
+
+  This module owns the receipt-side validation used before Citadel promotion
+  authority is compiled. It deliberately stores only bounded summaries and refs.
+  """
+
+  alias Chassis.Evolution.Receipts.OperatorConsentRecord
+  alias Chassis.Evolution.Receipts.Store.Memory
+
+  @default_ttl_seconds 3600
+  @approved_decisions [:approve, :approved]
+
+  @type validation :: %{
+          operator_consent_ref: String.t(),
+          candidate_ref: String.t(),
+          recorded_at: DateTime.t(),
+          actor_ref: String.t()
+        }
+
+  @spec record_operator_consent(String.t(), String.t(), atom(), map(), keyword()) ::
+          {:ok, OperatorConsentRecord.t()} | {:error, term()}
+  def record_operator_consent(candidate_ref, actor_ref, decision, attrs, opts \\ [])
+      when is_binary(candidate_ref) and is_binary(actor_ref) and is_map(attrs) do
+    attrs =
+      attrs
+      |> Map.new()
+      |> Map.merge(%{
+        candidate_ref: candidate_ref,
+        actor_ref: actor_ref,
+        decision: decision
+      })
+      |> Map.put_new(:recorded_at, DateTime.utc_now())
+
+    with :ok <- validate_actor(actor_ref),
+         :ok <- validate_recordable_decision(decision) do
+      record = OperatorConsentRecord.new!(attrs)
+
+      case Keyword.fetch(opts, :store) do
+        {:ok, store} -> Memory.put(store, record)
+        :error -> {:ok, record}
+      end
+    end
+  rescue
+    exception in ArgumentError -> {:error, {:invalid_consent, Exception.message(exception)}}
+  end
+
+  @spec validate(map() | struct(), keyword()) :: {:ok, validation()} | {:error, atom()}
+  def validate(consent, opts \\ [])
+
+  def validate(consent, opts) when is_map(consent) do
+    attrs = attrs(consent)
+
+    with :ok <- require_present(attrs, :operator_consent_ref),
+         :ok <- require_present(attrs, :candidate_ref),
+         :ok <- require_present(attrs, :recorded_at),
+         :ok <- require_present(attrs, :actor_ref),
+         :ok <- validate_expected_ref(attrs, opts),
+         :ok <- validate_expected_candidate(attrs, opts),
+         :ok <- validate_actor(Map.get(attrs, :actor_ref)),
+         :ok <- validate_approved(Map.get(attrs, :decision)),
+         :ok <- validate_ttl(Map.get(attrs, :recorded_at), opts) do
+      {:ok,
+       %{
+         operator_consent_ref: Map.fetch!(attrs, :operator_consent_ref),
+         candidate_ref: Map.fetch!(attrs, :candidate_ref),
+         recorded_at: Map.fetch!(attrs, :recorded_at),
+         actor_ref: Map.fetch!(attrs, :actor_ref)
+       }}
+    end
+  end
+
+  def validate(_other, _opts), do: {:error, :invalid_record}
+
+  defp attrs(%_struct{} = consent), do: Map.from_struct(consent)
+  defp attrs(consent), do: Map.new(consent)
+
+  defp require_present(attrs, field) do
+    case Map.get(attrs, field) || Map.get(attrs, Atom.to_string(field)) do
+      value when is_binary(value) and value != "" -> :ok
+      %DateTime{} -> :ok
+      value when is_atom(value) and not is_nil(value) -> :ok
+      _other -> {:error, field}
+    end
+  end
+
+  defp validate_expected_ref(attrs, opts) do
+    case Keyword.get(opts, :operator_consent_ref) do
+      nil ->
+        :ok
+
+      expected ->
+        validate_expected_value(
+          expected,
+          Map.get(attrs, :operator_consent_ref),
+          :operator_consent_mismatch
+        )
+    end
+  end
+
+  defp validate_expected_candidate(attrs, opts) do
+    case Keyword.get(opts, :candidate_ref) do
+      nil ->
+        :ok
+
+      expected ->
+        validate_expected_value(expected, Map.get(attrs, :candidate_ref), :candidate_mismatch)
+    end
+  end
+
+  defp validate_expected_value(expected, actual, _reason) when expected == actual, do: :ok
+  defp validate_expected_value(_expected, _actual, reason), do: {:error, reason}
+
+  defp validate_actor(actor_ref) when is_binary(actor_ref) do
+    if String.starts_with?(actor_ref, ["user:", "operator:"]) do
+      :ok
+    else
+      {:error, :actor_not_user}
+    end
+  end
+
+  defp validate_actor(_other), do: {:error, :actor_not_user}
+
+  defp validate_recordable_decision(decision) when decision in [:approve, :reject], do: :ok
+  defp validate_recordable_decision(:approved), do: :ok
+  defp validate_recordable_decision(_decision), do: {:error, :invalid_decision}
+
+  defp validate_approved(decision) when decision in @approved_decisions, do: :ok
+  defp validate_approved(_decision), do: {:error, :not_approved}
+
+  defp validate_ttl(%DateTime{} = recorded_at, opts) do
+    now = Keyword.get(opts, :now, DateTime.utc_now())
+    ttl_seconds = Keyword.get(opts, :ttl_seconds, @default_ttl_seconds)
+
+    case DateTime.diff(now, recorded_at, :second) do
+      age when age <= ttl_seconds -> :ok
+      _expired -> {:error, :expired}
+    end
+  end
+
+  defp validate_ttl(_recorded_at, _opts), do: {:error, :invalid_recorded_at}
+end
+
 defmodule Chassis.Evolution.Receipts.AfterActions.Recorder do
   @moduledoc "In-memory after-action event recorder for receipt side effects."
 

@@ -21,6 +21,7 @@ defmodule Chassis.Policy.Boundary.MixProject do
   defp deps do
     [
       {:chassis_boundary, path: "../chassis_boundary"},
+      {:chassis_evolution_receipts, path: "../../evolution/chassis_evolution_receipts"},
       {:citadel_governance, path: "../../../citadel/core/citadel_governance"},
       {:citadel_authority_contract, path: "../../../citadel/core/authority_contract"}
     ]

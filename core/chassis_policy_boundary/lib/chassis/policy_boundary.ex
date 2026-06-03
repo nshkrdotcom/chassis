@@ -54,6 +54,190 @@ defmodule Chassis.Policy.Boundary do
     }
   }
 
+  @authority_intents %{
+    "authority:chassis:evolution:create_batch" => %{
+      operation: :evolution_create_batch,
+      authority_class: "chassis.evolution.create_batch",
+      protocol_ref: "boundary:chassis.evolution.create_batch:v1",
+      tools: [],
+      effect_classes: ["chassis.evolution.failure_batch"],
+      binding_keys: [:tenant_ref, :installation_ref, :redaction_posture, :evidence_refs_digest]
+    },
+    "authority:chassis:evolution:start" => %{
+      operation: :evolution_start,
+      authority_class: "chassis.evolution.start",
+      protocol_ref: "boundary:chassis.evolution.start:v1",
+      tools: [],
+      effect_classes: ["chassis.evolution.lifecycle"],
+      binding_keys: [
+        :tenant_ref,
+        :installation_ref,
+        :failure_batch_ref,
+        :runner_profile_ref,
+        :scorer_profile_ref,
+        :trial_profile_ref,
+        :budget_ref
+      ]
+    },
+    "authority:chassis:evolution:run_coding_agent" => %{
+      operation: :evolution_run_coding_agent,
+      authority_class: "chassis.evolution.run_coding_agent",
+      protocol_ref: "boundary:chassis.evolution.run_coding_agent:v1",
+      tools: ["coding_agent"],
+      effect_classes: ["chassis.evolution.coding_agent"],
+      binding_keys: [
+        :tenant_ref,
+        :installation_ref,
+        :candidate_ref,
+        :runner_kind,
+        :runner_profile_ref,
+        :budget_ref
+      ]
+    },
+    "authority:chassis:evolution:provision_trial" => %{
+      operation: :evolution_provision_trial,
+      authority_class: "chassis.evolution.provision_trial",
+      protocol_ref: "boundary:chassis.evolution.provision_trial:v1",
+      tools: ["trial_runtime"],
+      effect_classes: ["chassis.evolution.trial"],
+      binding_keys: [
+        :tenant_ref,
+        :installation_ref,
+        :candidate_ref,
+        :trial_profile_ref,
+        :trial_runtime_kind,
+        :approved_state_volume_mounts
+      ]
+    },
+    "authority:chassis:evolution:score_candidate" => %{
+      operation: :evolution_score_candidate,
+      authority_class: "chassis.evolution.score_candidate",
+      protocol_ref: "boundary:chassis.evolution.score_candidate:v1",
+      tools: [],
+      effect_classes: ["chassis.evolution.scoring"],
+      binding_keys: [:tenant_ref, :installation_ref, :trial_run_ref, :scorer_profile_ref]
+    },
+    "authority:chassis:evolution:request_promotion" => %{
+      operation: :evolution_request_promotion,
+      authority_class: "chassis.evolution.request_promotion",
+      protocol_ref: "boundary:chassis.evolution.request_promotion:v1",
+      tools: [],
+      effect_classes: ["chassis.evolution.promotion_intent"],
+      binding_keys: [
+        :tenant_ref,
+        :installation_ref,
+        :candidate_ref,
+        :target_installation_ref
+      ]
+    },
+    "authority:chassis:evolution:promote_candidate" => %{
+      operation: :evolution_promote_candidate,
+      authority_class: "chassis.evolution.promote_candidate",
+      protocol_ref: "boundary:chassis.evolution.promote_candidate:v1",
+      tools: ["host_daemon"],
+      effect_classes: ["chassis.evolution.promotion"],
+      binding_keys: [
+        :tenant_ref,
+        :installation_ref,
+        :candidate_ref,
+        :failure_batch_ref,
+        :patch_digest,
+        :base_release_ref,
+        :artifact_digest,
+        :score_matrix_ref,
+        :target_installation_ref,
+        :approved_state_volume_mounts,
+        :rollback_ref,
+        :operator_consent_ref,
+        :trace_id
+      ]
+    },
+    "authority:chassis:evolution:rollback_candidate" => %{
+      operation: :evolution_rollback_candidate,
+      authority_class: "chassis.evolution.rollback_candidate",
+      protocol_ref: "boundary:chassis.evolution.rollback_candidate:v1",
+      tools: ["host_daemon"],
+      effect_classes: ["chassis.evolution.rollback"],
+      binding_keys: [
+        :tenant_ref,
+        :installation_ref,
+        :candidate_ref,
+        :swap_ref,
+        :reason_code
+      ]
+    },
+    "authority:chassis:host_daemon:swap" => %{
+      operation: :host_daemon_swap,
+      authority_class: "chassis.host_daemon.swap",
+      protocol_ref: "boundary:chassis.host_daemon.swap:v1",
+      tools: ["systemd", "unix_socket"],
+      effect_classes: ["chassis.host_daemon.swap"],
+      binding_keys: [
+        :tenant_ref,
+        :installation_ref,
+        :candidate_ref,
+        :host_target_ref,
+        :artifact_digest,
+        :approved_state_volume_mounts,
+        :host_swap_strategy
+      ]
+    },
+    "authority:chassis:host_daemon:rollback" => %{
+      operation: :host_daemon_rollback,
+      authority_class: "chassis.host_daemon.rollback",
+      protocol_ref: "boundary:chassis.host_daemon.rollback:v1",
+      tools: ["systemd", "unix_socket"],
+      effect_classes: ["chassis.host_daemon.rollback"],
+      binding_keys: [:tenant_ref, :installation_ref, :swap_ref, :reason_code]
+    },
+    "authority:chassis:model:materialize_weight" => %{
+      operation: :model_materialize_weight,
+      authority_class: "chassis.model.materialize_weight",
+      protocol_ref: "boundary:chassis.model.materialize_weight:v1",
+      tools: ["hf_hub", "artifact_fs"],
+      effect_classes: ["chassis.model.materialization"],
+      binding_keys: [
+        :tenant_ref,
+        :installation_ref,
+        :model_ref,
+        :target_host_ref,
+        :source_strategy,
+        :expected_digest_ref,
+        :bandwidth_class,
+        :cache_root_ref
+      ]
+    },
+    "authority:chassis:model:reload_tensor_patch" => %{
+      operation: :model_reload_tensor_patch,
+      authority_class: "chassis.model.reload_tensor_patch",
+      protocol_ref: "boundary:chassis.model.reload_tensor_patch:v1",
+      tools: ["tensor_reload"],
+      effect_classes: ["chassis.model.tensor_reload"],
+      binding_keys: [
+        :tenant_ref,
+        :installation_ref,
+        :patch_ref,
+        :target_runtime_ref,
+        :reload_strategy,
+        :rollback_patch_ref
+      ]
+    },
+    "authority:chassis:hardware:admit_accelerator" => %{
+      operation: :hardware_admit_accelerator,
+      authority_class: "chassis.hardware.admit_accelerator",
+      protocol_ref: "boundary:chassis.hardware.admit_accelerator:v1",
+      tools: [],
+      effect_classes: ["chassis.hardware.admission"],
+      binding_keys: [
+        :tenant_ref,
+        :installation_ref,
+        :host_ref,
+        :runtime_ref,
+        :required_capabilities_digest
+      ]
+    }
+  }
+
   @type operation ::
           :materialize_deployment
           | :provision_host
@@ -117,6 +301,44 @@ defmodule Chassis.Policy.Boundary do
   end
 
   def authorize(input), do: {:error, authority_error(:invalid_request, input)}
+
+  @spec authorize_intent(map(), keyword()) ::
+          {:ok,
+           %{
+             authority_ref: String.t(),
+             governance_packet: term(),
+             binding_attrs: map(),
+             intent_ref: String.t()
+           }}
+          | {:error, Error.t()}
+  def authorize_intent(request, opts \\ [])
+
+  def authorize_intent(request, opts) when is_map(request) do
+    intent_ref = request_value(request, :intent_ref)
+
+    with {:ok, spec} <- intent_spec(intent_ref),
+         {:ok, binding_attrs} <- build_binding_attrs(intent_ref, request),
+         :ok <- validate_intent_consent(intent_ref, binding_attrs, request, opts),
+         {:ok, %AuthorityDecisionV1{} = decision} <-
+           acquire_intent_decision(intent_ref, spec, binding_attrs, request, opts),
+         {:ok, governance} <- compile_intent(decision, intent_ref, spec, binding_attrs, opts) do
+      {:ok,
+       %{
+         authority_ref: authority_ref(governance),
+         governance_packet: governance,
+         binding_attrs: binding_attrs,
+         intent_ref: intent_ref
+       }}
+    end
+  end
+
+  def authorize_intent(_request, _opts),
+    do:
+      {:error,
+       Error.new(:invalid_request,
+         safe_message: "intent authority request must be a map",
+         retry_posture: :non_retryable
+       )}
 
   @spec authorize_then(input(), (Envelope.t() -> term())) :: term() | {:error, Error.t()}
   def authorize_then(input, effect_fun) when is_function(effect_fun, 1) do
@@ -203,6 +425,76 @@ defmodule Chassis.Policy.Boundary do
   @spec operations() :: [operation()]
   def operations, do: @operations |> Map.keys() |> Enum.sort()
 
+  @spec authority_intents() :: [String.t()]
+  def authority_intents, do: @authority_intents |> Map.keys() |> Enum.sort()
+
+  @spec binding_keys(String.t()) :: {:ok, [atom()]} | {:error, Error.t()}
+  def binding_keys(intent_ref) when is_binary(intent_ref) do
+    case intent_spec(intent_ref) do
+      {:ok, spec} -> {:ok, spec.binding_keys}
+      {:error, %Error{} = error} -> {:error, error}
+    end
+  end
+
+  def binding_keys(_intent_ref),
+    do:
+      {:error,
+       Error.new(:invalid_request,
+         safe_message: "authority intent ref must be a string",
+         retry_posture: :non_retryable
+       )}
+
+  @spec build_binding_attrs!(map(), [atom()]) :: map()
+  def build_binding_attrs!(attrs, binding_keys) when is_map(attrs) and is_list(binding_keys) do
+    attrs =
+      attrs
+      |> normalize_binding_keys()
+      |> synthesize_binding_digests()
+
+    Map.new(binding_keys, fn key ->
+      value = binding_value(attrs, key)
+
+      if binding_present?(value) do
+        {key, value}
+      else
+        raise ArgumentError, "missing authority binding #{key}"
+      end
+    end)
+  end
+
+  @spec assert_mutation_authorized(map()) :: :ok | {:error, Error.t()}
+  def assert_mutation_authorized(attrs) when is_map(attrs) do
+    intent_ref = request_value(attrs, :intent_ref)
+    authority_ref = request_value(attrs, :authority_ref)
+    operator_consent_ref = request_value(attrs, :operator_consent_ref)
+
+    cond do
+      not present_string?(authority_ref) ->
+        {:error,
+         Error.new(:authority_denied,
+           safe_message: "authority_ref is required before Chassis mutation",
+           retry_posture: :operator_required
+         )}
+
+      consent_required_for_mutation?(intent_ref) and not present_string?(operator_consent_ref) ->
+        {:error,
+         Error.new(:authority_denied,
+           safe_message: "operator_consent_ref is required before swap mutation",
+           retry_posture: :operator_required
+         )}
+
+      consent_required_for_mutation?(intent_ref) and operator_consent_ref == authority_ref ->
+        {:error,
+         Error.new(:authority_denied,
+           safe_message: "operator_consent_ref must be distinct from authority_ref",
+           retry_posture: :operator_required
+         )}
+
+      true ->
+        :ok
+    end
+  end
+
   @spec authority_class(operation()) :: {:ok, String.t()} | {:error, Error.t()}
   def authority_class(operation) do
     case operation_spec(operation) do
@@ -271,6 +563,300 @@ defmodule Chassis.Policy.Boundary do
           retry_posture: :non_retryable
         )
     end
+  end
+
+  defp intent_spec(intent_ref) when is_binary(intent_ref) do
+    case Map.fetch(@authority_intents, intent_ref) do
+      {:ok, spec} ->
+        {:ok, Map.put(spec, :intent_ref, intent_ref)}
+
+      :error ->
+        {:error,
+         Error.new(:invalid_request,
+           safe_message: "unsupported Chassis authority intent #{inspect(intent_ref)}",
+           retry_posture: :non_retryable
+         )}
+    end
+  end
+
+  defp intent_spec(_intent_ref) do
+    {:error,
+     Error.new(:invalid_request,
+       safe_message: "authority intent ref is required",
+       retry_posture: :non_retryable
+     )}
+  end
+
+  defp build_binding_attrs(intent_ref, request) do
+    with {:ok, binding_keys} <- binding_keys(intent_ref) do
+      attrs =
+        request
+        |> request_value(:attrs, %{})
+        |> Map.new()
+        |> Map.put_new(:tenant_ref, request_value(request, :tenant_ref))
+        |> Map.put_new(:installation_ref, request_value(request, :installation_ref))
+        |> Map.put_new(:trace_id, request_value(request, :trace_id))
+
+      {:ok, build_binding_attrs!(attrs, binding_keys)}
+    end
+  rescue
+    exception in ArgumentError ->
+      {:error,
+       Error.new(:authority_denied,
+         trace_id: request_value(request, :trace_id),
+         protocol_ref: intent_ref,
+         safe_message: Exception.message(exception),
+         retry_posture: :operator_required
+       )}
+  end
+
+  defp validate_intent_consent(
+         "authority:chassis:evolution:promote_candidate",
+         binding_attrs,
+         request,
+         opts
+       ) do
+    consent =
+      request_value(request, :operator_consent) ||
+        request_value(request, :operator_consent_record) ||
+        binding_value(binding_attrs, :operator_consent_record)
+
+    if is_nil(consent) do
+      {:error,
+       Error.new(:authority_denied,
+         trace_id: Map.get(binding_attrs, :trace_id),
+         protocol_ref: "authority:chassis:evolution:promote_candidate",
+         safe_message: "operator_consent_record is required for promote_candidate",
+         retry_posture: :operator_required
+       )}
+    else
+      validation_opts =
+        [
+          candidate_ref: Map.fetch!(binding_attrs, :candidate_ref),
+          operator_consent_ref: Map.fetch!(binding_attrs, :operator_consent_ref)
+        ]
+        |> maybe_put_opt(:now, Keyword.get(opts, :now))
+        |> maybe_put_opt(
+          :ttl_seconds,
+          Keyword.get(opts, :consent_ttl_seconds) || Keyword.get(opts, :ttl_seconds)
+        )
+
+      case Chassis.Evolution.Consent.validate(consent, validation_opts) do
+        {:ok, _validated} ->
+          :ok
+
+        {:error, reason} ->
+          {:error,
+           Error.new(:authority_denied,
+             trace_id: Map.get(binding_attrs, :trace_id),
+             protocol_ref: "authority:chassis:evolution:promote_candidate",
+             safe_message: "operator consent #{reason}",
+             retry_posture: :operator_required
+           )}
+      end
+    end
+  end
+
+  defp validate_intent_consent(_intent_ref, _binding_attrs, _request, _opts), do: :ok
+
+  defp acquire_intent_decision(intent_ref, spec, binding_attrs, request, opts) do
+    case request_value(request, :authority_result) do
+      {:error, reason} ->
+        {:error, authority_error(reason, trace_id: Map.get(binding_attrs, :trace_id))}
+
+      {:ok, %AuthorityDecisionV1{} = decision} ->
+        {:ok, decision}
+
+      _other ->
+        case request_value(request, :authority_decision) do
+          %AuthorityDecisionV1{} = decision -> {:ok, decision}
+          _missing -> acquire_intent_decision_from_provider(intent_ref, spec, binding_attrs, opts)
+        end
+    end
+  end
+
+  defp acquire_intent_decision_from_provider(intent_ref, spec, binding_attrs, opts) do
+    provider = Keyword.get(opts, :provider, Chassis.Policy.CitadelAuthorityProvider)
+
+    request = %{
+      "operation" => Atom.to_string(spec.operation),
+      "intent_ref" => intent_ref,
+      "authority_class" => spec.authority_class,
+      "tenant_ref" => Map.fetch!(binding_attrs, :tenant_ref),
+      "installation_ref" => Map.fetch!(binding_attrs, :installation_ref),
+      "request_id" => "authority-request:" <> digest({intent_ref, binding_attrs}),
+      "trace_id" => Map.get(binding_attrs, :trace_id) || "trace:" <> digest(binding_attrs),
+      "caller_kind" => "intent",
+      "capability_ref" => "capability:" <> spec.authority_class
+    }
+
+    case provider.authorize(request, opts) do
+      {:ok, %AuthorityDecisionV1{} = decision} -> {:ok, decision}
+      {:error, %Error{} = error} -> {:error, error}
+      {:error, reason} -> {:error, authority_error(reason, trace_id: request["trace_id"])}
+    end
+  end
+
+  defp compile_intent(decision, intent_ref, spec, binding_attrs, opts) do
+    compiler = Keyword.get(opts, :compiler, ExecutionGovernanceCompiler)
+    boundary_intent = intent_boundary_intent(intent_ref, spec, binding_attrs)
+    topology_intent = intent_topology_intent(intent_ref, binding_attrs)
+    attrs = intent_governance_attrs(intent_ref, spec, binding_attrs, decision)
+
+    {:ok, apply(compiler, :compile!, [decision, boundary_intent, topology_intent, attrs])}
+  rescue
+    exception ->
+      {:error,
+       Error.new(:invalid_request,
+         trace_id: Map.get(binding_attrs || %{}, :trace_id),
+         protocol_ref: intent_ref,
+         safe_message: "authority compilation failed: #{Exception.message(exception)}",
+         retry_posture: :non_retryable
+       )}
+  end
+
+  defp intent_boundary_intent(intent_ref, spec, binding_attrs) do
+    BoundaryIntent.new!(%{
+      boundary_class: spec.authority_class,
+      trust_profile: "trusted_operator",
+      workspace_profile: "chassis-evolution",
+      resource_profile: "control-plane",
+      requested_attach_mode: "fresh_or_reuse",
+      requested_ttl_ms: 300_000,
+      extensions: %{
+        "chassis" => %{
+          "intent_ref" => intent_ref,
+          "operation" => Atom.to_string(spec.operation),
+          "trace_id" => Map.get(binding_attrs, :trace_id)
+        }
+      }
+    })
+  end
+
+  defp intent_topology_intent(intent_ref, binding_attrs) do
+    TopologyIntent.new!(%{
+      topology_intent_id: "topology-intent:" <> digest({intent_ref, binding_attrs}),
+      session_mode: "attached",
+      routing_hints: %{
+        "protocol_ref" => intent_ref,
+        "tenant_ref" => Map.get(binding_attrs, :tenant_ref),
+        "installation_ref" => Map.get(binding_attrs, :installation_ref),
+        "target_ref" =>
+          Map.get(binding_attrs, :host_target_ref) ||
+            Map.get(binding_attrs, :target_host_ref) ||
+            Map.get(binding_attrs, :target_runtime_ref) ||
+            Map.get(binding_attrs, :candidate_ref) ||
+            "target:unknown"
+      },
+      coordination_mode: "single_target",
+      topology_epoch: 1,
+      extensions: %{"chassis" => %{"trace_id" => Map.get(binding_attrs, :trace_id)}}
+    })
+  end
+
+  defp intent_governance_attrs(intent_ref, spec, binding_attrs, decision) do
+    %{
+      execution_governance_id: decision.decision_id,
+      sandbox_level: "standard",
+      sandbox_egress: "restricted",
+      sandbox_approvals: "manual",
+      acceptable_attestation: ["chassis.attestation.v1"],
+      allowed_tools: spec.tools,
+      file_scope_ref: "file-scope:chassis-managed",
+      file_scope_hint: "/opt/nshkr/chassis",
+      logical_workspace_ref: "workspace:chassis-evolution",
+      workspace_mutability: "read_write",
+      execution_family: "process",
+      placement_intent: "remote_scope",
+      target_kind: "chassis-control-plane",
+      node_affinity: "topology-driven",
+      allowed_operations: [intent_ref],
+      effect_classes: spec.effect_classes,
+      cpu_class: "control-plane",
+      memory_class: "control-plane",
+      wall_clock_budget_ms: 600_000,
+      extensions: %{
+        "citadel" => %{
+          "chassis" => %{
+            "intent_ref" => intent_ref,
+            "operation" => Atom.to_string(spec.operation),
+            "trace_id" => Map.get(binding_attrs, :trace_id),
+            "bindings" => json_binding_attrs(binding_attrs)
+          }
+        }
+      }
+    }
+  end
+
+  defp synthesize_binding_digests(attrs) do
+    attrs
+    |> Map.new()
+    |> put_digest_if_missing(:evidence_refs_digest, :evidence_refs)
+    |> put_digest_if_missing(:required_capabilities_digest, :required_capabilities)
+  end
+
+  defp normalize_binding_keys(attrs) do
+    Map.new(attrs, fn
+      {key, value} when is_binary(key) -> {String.to_atom(key), value}
+      {key, value} -> {key, value}
+    end)
+  end
+
+  defp put_digest_if_missing(attrs, digest_key, source_key) do
+    cond do
+      binding_present?(binding_value(attrs, digest_key)) ->
+        attrs
+
+      binding_present?(binding_value(attrs, source_key)) ->
+        Map.put(attrs, digest_key, digest(binding_value(attrs, source_key)))
+
+      true ->
+        attrs
+    end
+  end
+
+  defp json_binding_attrs(attrs) do
+    Map.new(attrs, fn {key, value} -> {Atom.to_string(key), json_value(value)} end)
+  end
+
+  defp json_value(value) when is_atom(value), do: Atom.to_string(value)
+  defp json_value(%DateTime{} = value), do: DateTime.to_iso8601(value)
+  defp json_value(value) when is_list(value), do: Enum.map(value, &json_value/1)
+
+  defp json_value(value) when is_map(value),
+    do: Map.new(value, fn {k, v} -> {to_string(k), json_value(v)} end)
+
+  defp json_value(value), do: value
+
+  defp request_value(map, key, default \\ nil)
+
+  defp request_value(map, key, default) when is_map(map) do
+    Map.get(map, key, Map.get(map, Atom.to_string(key), default))
+  end
+
+  defp request_value(_other, _key, default), do: default
+
+  defp binding_value(map, key) when is_map(map),
+    do: Map.get(map, key, Map.get(map, Atom.to_string(key)))
+
+  defp binding_present?(value) when is_binary(value), do: value != ""
+  defp binding_present?(value), do: not is_nil(value)
+
+  defp present_string?(value), do: is_binary(value) and value != ""
+
+  defp consent_required_for_mutation?(intent_ref),
+    do:
+      intent_ref in [
+        "authority:chassis:evolution:promote_candidate",
+        "authority:chassis:host_daemon:swap"
+      ]
+
+  defp maybe_put_opt(opts, _key, nil), do: opts
+  defp maybe_put_opt(opts, key, value), do: Keyword.put(opts, key, value)
+
+  defp digest(value) do
+    :crypto.hash(:sha256, :erlang.term_to_binary(value))
+    |> Base.encode16(case: :lower)
   end
 
   defp fetch_operation!(operation) do
