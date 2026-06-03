@@ -61,3 +61,35 @@ commands required by the implementation checklist.
 
 The guides in `guides/*.md` document the operational surfaces included in the
 workspace docs build.
+
+## Terminal Command Families
+
+The final Chassis proof is exercised through three command families:
+
+```bash
+mix chassis.stack.deploy extravaganza \
+  --profile profile:ternary-split-3 \
+  --env prod
+
+mix chassis.evolution.proof \
+  --app extravaganza \
+  --profile profile:ternary-split-3 \
+  --env prod \
+  --fixture fixture:source_level_repair_001 \
+  --require-trial \
+  --require-citadel-consent \
+  --require-health-gated-swap \
+  --require-rollback-proof
+
+mix chassis.model.materialize \
+  --runtime runtime:crucible_bumblebee:cuda-small \
+  --model model:hf:qwen3-small-fixture \
+  --target host:gpu-fixture \
+  --verify-sha256 \
+  --dry-run
+```
+
+`guides/deployment.md`, `guides/evolution.md`, `guides/model_assets.md`,
+`guides/boundary.md`, and `guides/operations.md` are included in the docs build
+and describe the deployment, evolution, model asset, boundary, and operator
+surfaces used by those commands.
