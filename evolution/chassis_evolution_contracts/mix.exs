@@ -14,9 +14,13 @@ defmodule Chassis.Evolution.Contracts.MixProject do
 
   def application do
     [
-      extra_applications: [:logger, :crypto, :public_key, :ssh]
+      extra_applications: [:logger]
     ]
   end
 
-  defp deps, do: []
+  defp deps do
+    [
+      {:jason, "~> 1.4"}
+    ]
+  end
 end
