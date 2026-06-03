@@ -14,9 +14,15 @@ defmodule Chassis.Metrics.MixProject do
 
   def application do
     [
-      extra_applications: [:logger, :crypto, :public_key, :ssh]
+      extra_applications: [:logger, :crypto, :telemetry]
     ]
   end
 
-  defp deps, do: []
+  defp deps do
+    [
+      {:chassis_contracts, path: "../../core/chassis_contracts"},
+      {:jason, "~> 1.4"},
+      {:telemetry, "~> 1.0"}
+    ]
+  end
 end
