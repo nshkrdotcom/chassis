@@ -136,11 +136,11 @@ defmodule Chassis.CLI.StaticResponsePathRegressionTest do
     end
 
     test "future commands with no Phase 20 module still return the router not_implemented payload" do
-      {_code, payload} = CLI.dispatch(["hardware.validate"])
+      {_code, payload} = CLI.dispatch(["model.materialize"])
       assert payload.error == "not_implemented"
       refute Map.get(payload, :routed?, false)
-      assert payload.phase_gate == 41
-      assert payload.package == :chassis_hardware_guard
+      assert payload.phase_gate == 40
+      assert payload.package == :chassis_weight_materializer
     end
   end
 
@@ -189,6 +189,27 @@ defmodule Chassis.CLI.StaticResponsePathRegressionTest do
       refute Map.has_key?(payload, :error)
     end
 
+    test "phase 37 hardware.validate dispatches to hardware guard logic" do
+      {code, payload} =
+        CLI.dispatch([
+          "hardware.validate",
+          "--host",
+          "host:cpu-fixture",
+          "--runtime",
+          "runtime:crucible_bumblebee:cuda-small",
+          "--json"
+        ])
+
+      assert code == 0
+      assert payload["host_ref"] == "host:cpu-fixture"
+      assert payload["runtime_ref"] == "runtime:crucible_bumblebee:cuda-small"
+      assert payload["admission_outcome"] == "reject"
+      assert "gpu_vendor_mismatch" in payload["reason_codes"]
+      assert "container_gpu_runtime_missing" in payload["reason_codes"]
+      assert payload["placement_allowed?"] == false
+      refute Map.has_key?(payload, :error)
+    end
+
     test "stack.deploy never turns an invalid profile into a baked active response" do
       {_code, payload} =
         CLI.dispatch([
@@ -209,11 +230,12 @@ defmodule Chassis.CLI.StaticResponsePathRegressionTest do
       refute Map.get(payload, :failed) == 0
     end
 
-    test "hardware.validate never returns admission_outcome from the CLI itself" do
+    test "hardware.validate never returns a baked active response from the CLI itself" do
       {_code, payload} =
         CLI.dispatch(["hardware.validate", "--host", "host:cpu", "--runtime", "runtime:cuda"])
 
-      refute Map.has_key?(payload, :admission_outcome)
+      refute Map.get(payload, "admission_outcome") == "admit"
+      refute Map.get(payload, :admission_outcome) == :admit
     end
 
     test "tensor.reload never returns strategy_applied from the CLI itself" do

@@ -37,6 +37,7 @@ defmodule Chassis.Workspace.MixProject do
     [
       {:blitz, "~> 0.3.0", runtime: false},
       {:chassis_evolution_conformance, path: "proof/chassis_evolution_conformance"},
+      {:chassis_hardware_guard, path: "model/chassis_hardware_guard"},
       {:weld, "~> 0.8.2", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},

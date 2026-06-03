@@ -93,7 +93,7 @@ defmodule Chassis.CLI do
     "evolution.proof" =>
       {Chassis.CLI.Command.Evolution.Proof, phase: 36, package: :chassis_evolution_conformance},
     "hardware.validate" =>
-      {Chassis.CLI.Command.Hardware.Validate, phase: 41, package: :chassis_hardware_guard},
+      {Chassis.CLI.Command.Hardware.Validate, phase: 37, package: :chassis_hardware_guard},
     "model.materialize" =>
       {Chassis.CLI.Command.Model.Materialize, phase: 40, package: :chassis_weight_materializer},
     "model.cache.list" =>
@@ -211,6 +211,7 @@ defmodule Chassis.CLI do
           quota: :string,
           release_version: :string,
           residency: :string,
+          runtime: :string,
           scenario: :string,
           suite: :string,
           tenant: :string,
