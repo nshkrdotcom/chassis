@@ -8,15 +8,18 @@ defmodule Chassis.Mesh.MixProject do
       elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "BEAM TLS mesh and health supervision"
+      description: "BEAM TLS mesh, :pg group sync, and health supervision"
     ]
   end
 
   def application do
-    [
-      extra_applications: [:logger, :crypto, :public_key, :ssh]
-    ]
+    [extra_applications: [:logger, :crypto, :public_key]]
   end
 
-  defp deps, do: []
+  defp deps do
+    [
+      {:chassis_contracts, path: "../chassis_contracts"},
+      {:chassis_receipts, path: "../chassis_receipts"}
+    ]
+  end
 end
