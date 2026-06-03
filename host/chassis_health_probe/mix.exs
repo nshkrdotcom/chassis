@@ -18,5 +18,14 @@ defmodule Chassis.Health.Probe.MixProject do
     ]
   end
 
-  defp deps, do: []
+  defp deps do
+    [
+      {:chassis_evolution_contracts, path: "../../evolution/chassis_evolution_contracts"},
+      {:chassis_mesh, path: "../../core/chassis_mesh"},
+      {:chassis_aitrace_bridge, path: "../../observability/chassis_aitrace_bridge"},
+      {:chassis_metrics, path: "../../observability/chassis_metrics"},
+      {:chassis_swap_supervisor, path: "../chassis_swap_supervisor"},
+      {:jason, "~> 1.4"}
+    ]
+  end
 end
