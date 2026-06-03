@@ -6,6 +6,8 @@
 /dist/release_bundles/
 /dist/hex/*/projection.lock.json
 /.dependency_sources.local.exs
+/burrito_out/
+/chassis
 
 **/_build/
 **/cover/

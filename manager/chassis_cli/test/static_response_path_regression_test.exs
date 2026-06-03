@@ -121,35 +121,41 @@ defmodule Chassis.CLI.StaticResponsePathRegressionTest do
   end
 
   describe "not-implemented metadata shape" do
-    test "stack.deploy resolves to Chassis.CLI.Command.Stack.Deploy and returns the canonical error tuple shape" do
+    test "proof.run resolves through a command module and returns the canonical future-phase placeholder" do
       {code, payload} =
-        CLI.dispatch(["stack.deploy", "extravaganza", "--profile", "profile:monolith"])
-
-      # Phase 11 hasn't run yet; the command module shouldn't exist.
-      refute Code.ensure_loaded?(Chassis.CLI.Command.Stack.Deploy),
-             "stack.deploy module must NOT be defined before Phase 11"
+        CLI.dispatch(["proof.run", "--suite", "phase20"])
 
       assert code == 1
       assert payload.error == "not_implemented"
-      assert payload.command == "stack.deploy"
-      assert payload.phase_gate == 11
-      assert payload.package == :chassis_stack_manager
-      assert payload.module == "Chassis.CLI.Command.Stack.Deploy"
-    end
-
-    test "proof.run returns the canonical not_implemented payload tied to Phase 21" do
-      {_code, payload} = CLI.dispatch(["proof.run"])
-      assert payload.error == "not_implemented"
+      assert payload.command == "proof.run"
+      assert payload.routed?
       assert payload.phase_gate == 21
       assert payload.package == :chassis_stacklab_bridge
+      assert payload.module == "Chassis.CLI.Command.Proof.Run"
+    end
+
+    test "future commands with no Phase 20 module still return the router not_implemented payload" do
+      {_code, payload} = CLI.dispatch(["hardware.validate"])
+      assert payload.error == "not_implemented"
+      refute Map.get(payload, :routed?, false)
+      assert payload.phase_gate == 41
+      assert payload.package == :chassis_hardware_guard
     end
   end
 
   describe "router refuses to fabricate success" do
-    test "stack.deploy never returns status: \"active\" with a baked receipt_ref" do
-      {_code, payload} = CLI.dispatch(["stack.deploy", "extravaganza"])
+    test "stack.deploy never turns an invalid profile into a baked active response" do
+      {_code, payload} =
+        CLI.dispatch([
+          "stack.deploy",
+          "extravaganza",
+          "--profile",
+          "profile:nope",
+          "--no-mezzanine"
+        ])
+
+      refute Map.get(payload, :status) == :active
       refute Map.get(payload, :status) == "active"
-      refute Map.has_key?(payload, :receipt_ref)
     end
 
     test "proof.run never returns a hard-coded passed: 12, failed: 0 payload" do
@@ -173,16 +179,16 @@ defmodule Chassis.CLI.StaticResponsePathRegressionTest do
 
   describe "encoding" do
     test "json encoding round-trips structural keys for the not-implemented payload" do
-      {_code, payload} = CLI.dispatch(["stack.deploy"])
+      {_code, payload} = CLI.dispatch(["proof.run"])
       json = Chassis.CLI.Encoding.encode(payload, json?: true)
       assert json =~ ~s("error":"not_implemented")
-      assert json =~ ~s("command":"stack.deploy")
-      assert json =~ ~s("phase_gate":11)
-      assert json =~ ~s("package":"chassis_stack_manager")
+      assert json =~ ~s("command":"proof.run")
+      assert json =~ ~s("phase_gate":21)
+      assert json =~ ~s("package":"chassis_stacklab_bridge")
     end
 
     test "human encoding labels errors with the ERROR prefix" do
-      {_code, payload} = CLI.dispatch(["stack.deploy"])
+      {_code, payload} = CLI.dispatch(["proof.run"])
       human = Chassis.CLI.Encoding.encode(payload, json?: false)
       assert human =~ "ERROR not_implemented"
     end

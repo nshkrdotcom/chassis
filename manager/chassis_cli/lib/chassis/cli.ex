@@ -183,7 +183,32 @@ defmodule Chassis.CLI do
 
   defp parse_switches(argv) do
     {parsed, positional, _invalid} =
-      OptionParser.parse(argv, switches: [], allow_nonexistent_atoms: false)
+      OptionParser.parse(argv,
+        strict: [
+          dry_run: :boolean,
+          env: :string,
+          from: :string,
+          git_sha: :string,
+          host: :string,
+          hosts: :string,
+          idempotency_key: :string,
+          installation: :string,
+          isolation: :string,
+          json: :boolean,
+          material_file: :string,
+          no_mezzanine: :boolean,
+          plaintext_vault: :boolean,
+          profile: :string,
+          quota: :string,
+          release_version: :string,
+          residency: :string,
+          suite: :string,
+          tenant: :string,
+          to: :string,
+          vault_path: :string
+        ],
+        aliases: [p: :profile]
+      )
 
     switches = Map.new(parsed)
     {positional, switches}
@@ -201,10 +226,10 @@ defmodule Chassis.CLI do
             {0, Map.put(payload, :command, command_key)}
 
           {:error, {:not_implemented, ^module, info}} ->
-            not_implemented_payload(command_key, module, Keyword.merge(meta, info))
+            not_implemented_payload(command_key, module, Keyword.merge(meta, info), routed?: true)
 
           {:error, {:not_implemented, ^module}} ->
-            not_implemented_payload(command_key, module, meta)
+            not_implemented_payload(command_key, module, meta, routed?: true)
 
           {:error, %{} = err} ->
             {1, Map.merge(%{error: "command_failed", command: command_key}, err)}
@@ -237,11 +262,11 @@ defmodule Chassis.CLI do
            }}
       end
     else
-      not_implemented_payload(command_key, module, meta)
+      not_implemented_payload(command_key, module, meta, routed?: false)
     end
   end
 
-  defp not_implemented_payload(command_key, module, meta) do
+  defp not_implemented_payload(command_key, module, meta, opts) do
     phase = Keyword.get(meta, :phase, nil)
     package = Keyword.get(meta, :package, nil)
 
@@ -250,6 +275,7 @@ defmodule Chassis.CLI do
        error: "not_implemented",
        command: command_key,
        module: inspect(module),
+       routed?: Keyword.get(opts, :routed?, false),
        phase_gate: phase,
        package: package
      }}
@@ -308,6 +334,10 @@ defmodule Chassis.CLI.Encoding do
 
   defp human(%{error: error} = payload) do
     "ERROR " <> to_string(error) <> ": " <> inspect(Map.delete(payload, :error))
+  end
+
+  defp human(%{format: :table, columns: columns, rows: rows}) do
+    Chassis.CLI.Table.render(columns, rows)
   end
 
   defp human(payload) do
