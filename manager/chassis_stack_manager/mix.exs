@@ -18,5 +18,13 @@ defmodule Chassis.Stack.Manager.MixProject do
     ]
   end
 
-  defp deps, do: []
+  defp deps do
+    [
+      {:chassis_inventory, path: "../../core/chassis_inventory"},
+      {:chassis_receipts, path: "../../core/chassis_receipts"},
+      {:chassis_releases, path: "../../core/chassis_releases"},
+      {:chassis_stack, path: "../../core/chassis_stack"},
+      {:ground_plane_contracts, path: "../../../ground_plane/core/ground_plane_contracts"}
+    ]
+  end
 end
