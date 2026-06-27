@@ -12,20 +12,6 @@ defmodule Mix.Tasks.Chassis.Model.Materialize do
   def run(args), do: Chassis.MixTaskSupport.run_cli(["model.materialize" | args])
 end
 
-defmodule Mix.Tasks.Chassis.Boundary.Scan do
-  use Mix.Task
-  @shortdoc "Scan Chassis boundary payloads"
-  @impl true
-  def run(args), do: Chassis.MixTaskSupport.run_cli(["boundary.scan" | args])
-end
-
-defmodule Mix.Tasks.Chassis.Boundary.Conformance do
-  use Mix.Task
-  @shortdoc "Run Chassis boundary conformance"
-  @impl true
-  def run(args), do: Chassis.MixTaskSupport.run_cli(["boundary.conformance" | args])
-end
-
 defmodule Mix.Tasks.Burrito.Build do
   use Mix.Task
   @shortdoc "Create placeholder Burrito build artifacts for local smoke"

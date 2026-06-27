@@ -110,7 +110,12 @@ defmodule Chassis.InventoryTest do
             assert request.disk_gb <= r.disk_gb
 
           {:error, kind} ->
-            assert kind in [:cpu_unavailable, :memory_unavailable, :gpu_unavailable, :disk_unavailable]
+            assert kind in [
+                     :cpu_unavailable,
+                     :memory_unavailable,
+                     :gpu_unavailable,
+                     :disk_unavailable
+                   ]
         end
       end
     end
@@ -125,7 +130,8 @@ defmodule Chassis.InventoryTest do
 
   describe "StaticDiscovery reads from a JSON path" do
     setup do
-      path = Path.join(System.tmp_dir!(), "chassis_hosts_#{System.unique_integer([:positive])}.json")
+      path =
+        Path.join(System.tmp_dir!(), "chassis_hosts_#{System.unique_integer([:positive])}.json")
 
       File.write!(
         path,
@@ -161,6 +167,84 @@ defmodule Chassis.InventoryTest do
     test "tenant_ref filter returns only matching hosts", %{path: path} do
       assert {:ok, hosts} = StaticDiscovery.discover_hosts(path: path, tenant_ref: "tenant:acme")
       assert [%{host_ref: "host:gpu1"}] = hosts
+    end
+
+    test "top-level tenant_ref filters runbook-style host inventory files" do
+      path =
+        Path.join(
+          System.tmp_dir!(),
+          "chassis_hosts_wrapped_#{System.unique_integer([:positive])}.json"
+        )
+
+      File.write!(
+        path,
+        Jason.encode!(%{
+          "version" => 1,
+          "tenant_ref" => "tenant:wrapped",
+          "hosts" => [
+            %{
+              "host_ref" => "host:wrapped",
+              "provider" => "static",
+              "region" => "local",
+              "resources" => %{"cpu_cores" => 4, "ram_gb" => 8, "gpus" => 0},
+              "tenant_refs" => ["tenant:wrapped"]
+            },
+            %{
+              "host_ref" => "host:other",
+              "provider" => "static",
+              "region" => "local",
+              "resources" => %{"cpu_cores" => 4, "ram_gb" => 8, "gpus" => 0},
+              "tenant_refs" => ["tenant:other"]
+            }
+          ]
+        })
+      )
+
+      on_exit(fn -> File.rm(path) end)
+
+      assert {:ok, [%{host_ref: "host:wrapped"}]} = StaticDiscovery.discover_hosts(path: path)
+    end
+
+    test "normalization does not create atoms from unbounded JSON provider or resource keys" do
+      provider = "provider_#{System.unique_integer([:positive])}"
+      resource = "custom_resource_#{System.unique_integer([:positive])}"
+
+      path =
+        Path.join(
+          System.tmp_dir!(),
+          "chassis_hosts_safe_#{System.unique_integer([:positive])}.json"
+        )
+
+      File.write!(
+        path,
+        Jason.encode!([
+          %{
+            "host_ref" => "host:safe",
+            "provider" => provider,
+            "region" => "local",
+            "resources" => %{
+              "cpu_cores" => 4,
+              "ram_gb" => 8,
+              "gpus" => 0,
+              resource => 1
+            },
+            "tenant_refs" => ["tenant:dev"]
+          }
+        ])
+      )
+
+      on_exit(fn -> File.rm(path) end)
+
+      assert {:ok, [%{provider: ^provider, resources: resources}]} =
+               StaticDiscovery.discover_hosts(path: path)
+
+      assert resources.cpu_cores == 4
+      assert Map.fetch!(resources, resource) == 1
+
+      refute Enum.any?(Map.keys(resources), fn
+               key when is_atom(key) -> Atom.to_string(key) == resource
+               _key -> false
+             end)
     end
 
     test "host_ref is the canonical join key (no IP-based join)", %{path: path} do

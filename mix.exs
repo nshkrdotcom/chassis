@@ -36,10 +36,13 @@ defmodule Chassis.Workspace.MixProject do
   defp deps do
     [
       {:blitz, "~> 0.3.0", runtime: false},
+      {:chassis_doctor, path: "bootstrap/chassis_doctor"},
       {:chassis_evolution_conformance, path: "proof/chassis_evolution_conformance"},
       {:chassis_hardware_guard, path: "model/chassis_hardware_guard"},
+      {:chassis_mezzanine_bridge, path: "governance/chassis_mezzanine_bridge"},
       {:chassis_model_asset_conformance, path: "proof/chassis_model_asset_conformance"},
       {:chassis_model_cache, path: "model/chassis_model_cache"},
+      {:chassis_stack_manager, path: "manager/chassis_stack_manager"},
       {:chassis_tensor_reload, path: "model/chassis_tensor_reload"},
       {:chassis_weight_materializer, path: "model/chassis_weight_materializer"},
       {:weld, "~> 0.8.2", only: [:dev, :test], runtime: false},

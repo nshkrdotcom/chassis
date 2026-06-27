@@ -109,11 +109,20 @@ defmodule Chassis.Inventory.PlacementValidator do
     resources = Map.get(host, :resources, %{})
 
     cond do
-      Map.get(request, :gpus, 0) > Map.get(resources, :gpus, 0) -> {:error, :gpu_unavailable}
-      Map.get(request, :cpu_cores, 0) > Map.get(resources, :cpu_cores, 0) -> {:error, :cpu_unavailable}
-      Map.get(request, :ram_gb, 0) > Map.get(resources, :ram_gb, 0) -> {:error, :memory_unavailable}
-      Map.get(request, :disk_gb, 0) > Map.get(resources, :disk_gb, 0) -> {:error, :disk_unavailable}
-      true -> :ok
+      Map.get(request, :gpus, 0) > Map.get(resources, :gpus, 0) ->
+        {:error, :gpu_unavailable}
+
+      Map.get(request, :cpu_cores, 0) > Map.get(resources, :cpu_cores, 0) ->
+        {:error, :cpu_unavailable}
+
+      Map.get(request, :ram_gb, 0) > Map.get(resources, :ram_gb, 0) ->
+        {:error, :memory_unavailable}
+
+      Map.get(request, :disk_gb, 0) > Map.get(resources, :disk_gb, 0) ->
+        {:error, :disk_unavailable}
+
+      true ->
+        :ok
     end
   end
 end
@@ -134,6 +143,22 @@ defmodule Chassis.Inventory.StaticDiscovery do
   @behaviour Chassis.Inventory.Discovery
 
   @default_path "~/.config/chassis/hosts.json"
+  @provider_atoms %{
+    "local" => :local,
+    "fixture" => :fixture,
+    "static" => :static,
+    "linode" => :linode,
+    "digital_ocean" => :digital_ocean,
+    "hetzner" => :hetzner,
+    "runpod" => :runpod,
+    "vast_ai" => :vast_ai
+  }
+  @resource_atoms %{
+    "cpu_cores" => :cpu_cores,
+    "ram_gb" => :ram_gb,
+    "gpus" => :gpus,
+    "disk_gb" => :disk_gb
+  }
 
   @impl true
   @spec discover_hosts(keyword()) :: {:ok, [map()]} | {:error, term()}
@@ -141,8 +166,9 @@ defmodule Chassis.Inventory.StaticDiscovery do
     path = opts |> Keyword.get(:path, @default_path) |> Path.expand()
 
     with {:ok, body} <- read_file(path),
-         {:ok, parsed} <- decode_json(body) do
-      hosts = parsed |> Enum.map(&normalize_host/1) |> filter_by_tenant(opts)
+         {:ok, {hosts_payload, tenant_ref}} <- decode_json(body) do
+      opts = Keyword.put_new(opts, :tenant_ref, tenant_ref)
+      hosts = hosts_payload |> Enum.map(&normalize_host/1) |> filter_by_tenant(opts)
       {:ok, hosts}
     end
   end
@@ -156,31 +182,47 @@ defmodule Chassis.Inventory.StaticDiscovery do
 
   defp decode_json(body) do
     case Jason.decode(body) do
-      {:ok, parsed} when is_list(parsed) -> {:ok, parsed}
-      {:ok, _other} -> {:error, {:json_decode, :not_a_list}}
-      {:error, reason} -> {:error, {:json_decode, reason}}
+      {:ok, parsed} when is_list(parsed) ->
+        {:ok, {parsed, nil}}
+
+      {:ok, %{"hosts" => hosts} = parsed} when is_list(hosts) ->
+        {:ok, {hosts, parsed["tenant_ref"]}}
+
+      {:ok, _other} ->
+        {:error, {:json_decode, :not_a_host_list}}
+
+      {:error, reason} ->
+        {:error, {:json_decode, reason}}
     end
   end
 
   defp normalize_host(host) when is_map(host) do
     %{
       host_ref: host["host_ref"],
-      provider: atomize(host["provider"]),
+      provider: normalize_provider(host["provider"]),
       region: host["region"],
       hostname: host["hostname"],
       ip_address: host["ip_address"],
-      resources: atomize_keys(host["resources"] || %{}),
+      resources: normalize_resources(host["resources"] || %{}),
       tenant_refs: host["tenant_refs"] || []
     }
   end
 
-  defp atomize(nil), do: nil
-  defp atomize(value) when is_atom(value), do: value
-  defp atomize(value) when is_binary(value), do: String.to_atom(value)
+  defp normalize_provider(nil), do: nil
+  defp normalize_provider(value) when is_atom(value), do: value
 
-  defp atomize_keys(map) when is_map(map) do
+  defp normalize_provider(value) when is_binary(value),
+    do: Map.get(@provider_atoms, value, value)
+
+  defp normalize_resources(map) when is_map(map) do
     Map.new(map, fn {k, v} ->
-      key = if is_binary(k), do: String.to_atom(k), else: k
+      key =
+        cond do
+          is_atom(k) -> k
+          is_binary(k) -> Map.get(@resource_atoms, k, k)
+          true -> k
+        end
+
       {key, v}
     end)
   end

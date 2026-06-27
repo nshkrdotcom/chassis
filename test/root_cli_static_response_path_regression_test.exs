@@ -42,8 +42,14 @@ defmodule Chassis.Workspace.RootCLIStaticResponsePathRegressionTest do
     "boundary.conformance"
   ]
 
-  describe "root Chassis.CLI is a strict not-implemented dispatcher" do
-    test "stack.deploy refuses to fabricate status: active and receipt:deployment:smoke" do
+  setup do
+    Chassis.CLI.Runtime.reset!()
+    on_exit(&Chassis.CLI.Runtime.reset!/0)
+    :ok
+  end
+
+  describe "root Chassis.CLI is a dynamic dispatcher without static payloads" do
+    test "stack.deploy dispatches to StackManager for direct local deploys" do
       {code, payload} =
         Chassis.CLI.dispatch([
           "stack.deploy",
@@ -51,15 +57,42 @@ defmodule Chassis.Workspace.RootCLIStaticResponsePathRegressionTest do
           "--profile",
           "profile:monolith",
           "--env",
-          "dev"
+          "dev",
+          "--tenant",
+          "tenant:dev",
+          "--installation",
+          "installation:dev",
+          "--idempotency-key",
+          "root-direct-deploy",
+          "--no-mezzanine"
         ])
 
-      assert code == 1
-      assert payload.error == "not_implemented"
-      assert payload.phase_gate == 11
-      assert payload.package == :chassis_stack_manager
-      refute Map.get(payload, :status) == "active"
-      refute Map.has_key?(payload, :receipt_ref)
+      assert code == 0
+      assert payload.command == "stack.deploy"
+      assert payload.via == :direct
+      assert payload.status == :active
+      assert payload.receipt_ref =~ "receipt:deployment:"
+      refute payload.receipt_ref == "receipt:deployment:smoke"
+
+      assert {0, idempotent} =
+               Chassis.CLI.dispatch([
+                 "stack.deploy",
+                 "extravaganza",
+                 "--profile",
+                 "profile:monolith",
+                 "--env",
+                 "dev",
+                 "--tenant",
+                 "tenant:dev",
+                 "--installation",
+                 "installation:dev",
+                 "--idempotency-key",
+                 "root-direct-deploy",
+                 "--no-mezzanine"
+               ])
+
+      assert idempotent.idempotent? == true
+      assert idempotent.receipt_ref == payload.receipt_ref
     end
 
     test "proof.run refuses to fabricate passed: 12, failed: 0" do
@@ -121,13 +154,30 @@ defmodule Chassis.Workspace.RootCLIStaticResponsePathRegressionTest do
       assert "proof.run" in payload.commands
     end
 
-    test "json encoding embeds structured not-implemented payload, no static keys" do
-      {code, output} = Chassis.CLI.dispatch_to_output(["stack.deploy", "--json"])
-      assert code == 1
-      assert output =~ ~s("error":"not_implemented")
-      assert output =~ ~s("phase_gate":11)
-      assert output =~ ~s("package":"chassis_stack_manager")
-      refute output =~ ~s("status":"active")
+    test "json encoding embeds active deploy payload, no static keys" do
+      {code, output} =
+        Chassis.CLI.dispatch_to_output([
+          "stack.deploy",
+          "extravaganza",
+          "--profile",
+          "profile:monolith",
+          "--env",
+          "dev",
+          "--tenant",
+          "tenant:dev",
+          "--installation",
+          "installation:dev",
+          "--idempotency-key",
+          "root-json-deploy",
+          "--no-mezzanine",
+          "--json"
+        ])
+
+      assert code == 0
+      assert output =~ ~s("command":"stack.deploy")
+      assert output =~ ~s("via":"direct")
+      assert output =~ ~s("status":"active")
+      assert output =~ ~s("receipt_ref":"receipt:deployment:)
       refute output =~ ~s("receipt_ref":"receipt:deployment:smoke")
     end
   end
