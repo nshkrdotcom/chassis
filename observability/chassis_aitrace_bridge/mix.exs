@@ -26,7 +26,7 @@ defmodule Chassis.Aitrace.Bridge.MixProject do
   defp deps do
     [
       {:aitrace, path: "../../../AITrace"},
-      {:jason, "~> 1.4"}
+      {:jason, "~> 1.4.5"}
     ]
   end
 end

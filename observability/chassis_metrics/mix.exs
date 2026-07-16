@@ -21,8 +21,8 @@ defmodule Chassis.Metrics.MixProject do
   defp deps do
     [
       {:chassis_contracts, path: "../../core/chassis_contracts"},
-      {:jason, "~> 1.4"},
-      {:telemetry, "~> 1.0"}
+      {:jason, "~> 1.4.5"},
+      {:telemetry, "~> 1.4.2"}
     ]
   end
 end

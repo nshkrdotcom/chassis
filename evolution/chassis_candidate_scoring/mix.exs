@@ -22,7 +22,7 @@ defmodule Chassis.Candidate.Scoring.MixProject do
     [
       {:chassis_evolution_contracts, path: "../chassis_evolution_contracts"},
       {:chassis_evolution_receipts, path: "../chassis_evolution_receipts"},
-      {:jason, "~> 1.4"}
+      {:jason, "~> 1.4.5"}
     ]
   end
 end

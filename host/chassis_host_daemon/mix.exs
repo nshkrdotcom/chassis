@@ -22,7 +22,7 @@ defmodule Chassis.Host.Daemon.MixProject do
     [
       {:chassis_boundary, path: "../../core/chassis_boundary"},
       {:chassis_policy_boundary, path: "../../core/chassis_policy_boundary"},
-      {:jason, "~> 1.4"}
+      {:jason, "~> 1.4.5"}
     ]
   end
 end

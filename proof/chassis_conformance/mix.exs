@@ -26,7 +26,7 @@ defmodule Chassis.Conformance.MixProject do
       {:chassis_releases, path: "../../core/chassis_releases"},
       {:chassis_stack_manager, path: "../../manager/chassis_stack_manager"},
       {:chassis_tenant, path: "../../core/chassis_tenant"},
-      {:jason, "~> 1.4"}
+      {:jason, "~> 1.4.5"}
     ]
   end
 end

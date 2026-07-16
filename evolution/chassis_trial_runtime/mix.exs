@@ -22,7 +22,7 @@ defmodule Chassis.Trial.Runtime.MixProject do
     [
       {:chassis_evolution_contracts, path: "../chassis_evolution_contracts"},
       {:chassis_trial_supervisor, path: "../../host/chassis_trial_supervisor"},
-      {:jason, "~> 1.4"}
+      {:jason, "~> 1.4.5"}
     ]
   end
 end

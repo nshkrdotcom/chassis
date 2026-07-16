@@ -25,7 +25,7 @@ defmodule Chassis.Health.Probe.MixProject do
       {:chassis_aitrace_bridge, path: "../../observability/chassis_aitrace_bridge"},
       {:chassis_metrics, path: "../../observability/chassis_metrics"},
       {:chassis_swap_supervisor, path: "../chassis_swap_supervisor"},
-      {:jason, "~> 1.4"}
+      {:jason, "~> 1.4.5"}
     ]
   end
 end

@@ -22,7 +22,7 @@ defmodule Chassis.Stacklab.Bridge.MixProject do
     [
       {:chassis_boundary, path: "../../core/chassis_boundary"},
       {:chassis_conformance, path: "../chassis_conformance"},
-      {:jason, "~> 1.4"}
+      {:jason, "~> 1.4.5"}
     ]
   end
 end

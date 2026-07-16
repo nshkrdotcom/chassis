@@ -22,7 +22,7 @@ defmodule Chassis.Secret.Sops.MixProject do
     [
       {:chassis_secret_refs, path: "../chassis_secret_refs"},
       {:chassis_receipts, path: "../../core/chassis_receipts"},
-      {:jason, "~> 1.4"}
+      {:jason, "~> 1.4.5"}
     ]
   end
 end

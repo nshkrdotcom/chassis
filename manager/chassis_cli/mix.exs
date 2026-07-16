@@ -23,8 +23,8 @@ defmodule Chassis.Cli.MixProject do
 
   defp deps do
     [
-      {:bunt, "~> 1.0"},
-      {:burrito, "~> 1.5", runtime: false},
+      {:bunt, "~> 1.0.0"},
+      {:burrito, "~> 1.5.0", runtime: false},
       {:chassis_bootstrap, path: "../../bootstrap/chassis_bootstrap"},
       {:chassis_doctor, path: "../../bootstrap/chassis_doctor"},
       {:chassis_environments, path: "../../core/chassis_environments"},
@@ -38,7 +38,7 @@ defmodule Chassis.Cli.MixProject do
       {:chassis_stack_manager, path: "../chassis_stack_manager"},
       {:chassis_tensor_reload, path: "../../model/chassis_tensor_reload"},
       {:chassis_weight_materializer, path: "../../model/chassis_weight_materializer"},
-      {:jason, "~> 1.4"}
+      {:jason, "~> 1.4.5"}
     ]
   end
 

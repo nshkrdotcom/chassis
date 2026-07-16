@@ -21,7 +21,7 @@ defmodule Chassis.Evolution.Core.MixProject do
   defp deps do
     [
       {:chassis_evolution_contracts, path: "../chassis_evolution_contracts"},
-      {:jason, "~> 1.4"}
+      {:jason, "~> 1.4.5"}
     ]
   end
 end
