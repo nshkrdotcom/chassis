@@ -1,5 +1,11 @@
+unless Code.ensure_loaded?(DependencySources) do
+  Code.require_file("../../build_support/dependency_sources.exs", __DIR__)
+end
+
 defmodule Chassis.Stack.Manager.MixProject do
   use Mix.Project
+
+  @repo_root Path.expand("../..", __DIR__)
 
   def project do
     [
@@ -25,7 +31,7 @@ defmodule Chassis.Stack.Manager.MixProject do
       {:chassis_releases, path: "../../core/chassis_releases"},
       {:chassis_stack, path: "../../core/chassis_stack"},
       {:chassis_tenant, path: "../../core/chassis_tenant"},
-      {:ground_plane_contracts, path: "../../../ground_plane/core/ground_plane_contracts"}
+      DependencySources.dep(:ground_plane_contracts, @repo_root)
     ]
   end
 end

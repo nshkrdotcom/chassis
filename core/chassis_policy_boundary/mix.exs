@@ -1,5 +1,11 @@
+unless Code.ensure_loaded?(DependencySources) do
+  Code.require_file("../../build_support/dependency_sources.exs", __DIR__)
+end
+
 defmodule Chassis.Policy.Boundary.MixProject do
   use Mix.Project
+
+  @repo_root Path.expand("../..", __DIR__)
 
   def project do
     [
@@ -22,8 +28,8 @@ defmodule Chassis.Policy.Boundary.MixProject do
     [
       {:chassis_boundary, path: "../chassis_boundary"},
       {:chassis_evolution_receipts, path: "../../evolution/chassis_evolution_receipts"},
-      {:citadel_governance, path: "../../../citadel/core/citadel_governance"},
-      {:citadel_authority_contract, path: "../../../citadel/core/authority_contract"}
+      DependencySources.dep(:citadel_governance, @repo_root),
+      DependencySources.dep(:citadel_authority_contract, @repo_root)
     ]
   end
 end

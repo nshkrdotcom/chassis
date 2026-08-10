@@ -1,5 +1,11 @@
+unless Code.ensure_loaded?(DependencySources) do
+  Code.require_file("../../build_support/dependency_sources.exs", __DIR__)
+end
+
 defmodule Chassis.Aitrace.Bridge.MixProject do
   use Mix.Project
+
+  @repo_root Path.expand("../..", __DIR__)
 
   def project do
     [
@@ -25,7 +31,7 @@ defmodule Chassis.Aitrace.Bridge.MixProject do
 
   defp deps do
     [
-      {:aitrace, path: "../../../AITrace"},
+      DependencySources.dep(:aitrace, @repo_root),
       {:jason, "~> 1.4.5"}
     ]
   end

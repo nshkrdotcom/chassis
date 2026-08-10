@@ -1,5 +1,55 @@
 %{
   deps: %{
+    :aitrace => %{
+      path: "../AITrace",
+      github: %{repo: "nshkrdotcom/AITrace", branch: "main"},
+      hex: "~> 0.1.0",
+      default_order: [:path, :github, :hex],
+      publish_order: [:hex]
+    },
+    :blitz => %{
+      hex: "~> 0.3.0",
+      default_order: [:hex],
+      publish_order: [:hex]
+    },
+    :citadel_authority_contract => %{
+      path: "../citadel/core/authority_contract",
+      github: %{
+        repo: "nshkrdotcom/citadel",
+        branch: "main",
+        subdir: "core/authority_contract"
+      },
+      hex: "~> 0.1.0",
+      default_order: [:path, :github, :hex],
+      publish_order: [:hex]
+    },
+    :citadel_governance => %{
+      path: "../citadel/core/citadel_governance",
+      github: %{
+        repo: "nshkrdotcom/citadel",
+        branch: "main",
+        subdir: "core/citadel_governance"
+      },
+      hex: "~> 0.1.0",
+      default_order: [:path, :github, :hex],
+      publish_order: [:hex]
+    },
+    :ground_plane_contracts => %{
+      path: "../ground_plane/core/ground_plane_contracts",
+      github: %{
+        repo: "nshkrdotcom/ground_plane",
+        branch: "main",
+        subdir: "core/ground_plane_contracts"
+      },
+      hex: "~> 0.1.0",
+      default_order: [:path, :github, :hex],
+      publish_order: [:hex]
+    },
+    :weld => %{
+      hex: "~> 0.8.4",
+      default_order: [:hex],
+      publish_order: [:hex]
+    },
     :chassis_contracts => %{
       path: "core/chassis_contracts",
       default_order: [:path],

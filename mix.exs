@@ -35,7 +35,7 @@ defmodule Chassis.Workspace.MixProject do
 
   defp deps do
     [
-      {:blitz, "~> 0.3.0", runtime: false},
+      DependencySources.dep(:blitz, __DIR__, runtime: false),
       {:chassis_doctor, path: "bootstrap/chassis_doctor"},
       {:chassis_evolution_conformance, path: "proof/chassis_evolution_conformance"},
       {:chassis_hardware_guard, path: "model/chassis_hardware_guard"},
@@ -45,7 +45,7 @@ defmodule Chassis.Workspace.MixProject do
       {:chassis_stack_manager, path: "manager/chassis_stack_manager"},
       {:chassis_tensor_reload, path: "model/chassis_tensor_reload"},
       {:chassis_weight_materializer, path: "model/chassis_weight_materializer"},
-      {:weld, "~> 0.8.4", only: [:dev, :test], runtime: false},
+      DependencySources.dep(:weld, __DIR__, only: [:dev, :test], runtime: false),
       {:credo, "~> 1.7.19", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4.7", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.40.3", only: :dev, runtime: false}
