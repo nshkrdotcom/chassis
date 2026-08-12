@@ -65,11 +65,15 @@ defmodule Chassis.Receipts.Store do
   """
 
   @typedoc "Receipt record — any of the typed structs in Chassis.Receipts.*"
-  @type record :: struct()
+  @type receipt_record :: struct()
 
-  @callback put(GenServer.server(), record()) :: {:ok, record()} | {:error, term()}
-  @callback get(GenServer.server(), String.t()) :: {:ok, record()} | {:error, :not_found}
-  @callback list(GenServer.server(), keyword()) :: [record()]
+  @callback put(GenServer.server(), receipt_record()) ::
+              {:ok, receipt_record()} | {:error, term()}
+
+  @callback get(GenServer.server(), String.t()) ::
+              {:ok, receipt_record()} | {:error, :not_found}
+
+  @callback list(GenServer.server(), keyword()) :: [receipt_record()]
   @callback delete(GenServer.server(), String.t()) :: :ok
 end
 
