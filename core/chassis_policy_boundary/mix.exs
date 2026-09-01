@@ -1,11 +1,7 @@
-unless Code.ensure_loaded?(DependencySources) do
-  Code.require_file("../../build_support/dependency_sources.exs", __DIR__)
-end
+if bootstrap = System.get_env("MIX_WORKSPACE_OPS_BOOTSTRAP"), do: Code.require_file(bootstrap)
 
 defmodule Chassis.Policy.Boundary.MixProject do
   use Mix.Project
-
-  @repo_root Path.expand("../..", __DIR__)
 
   def project do
     [
@@ -28,8 +24,14 @@ defmodule Chassis.Policy.Boundary.MixProject do
     [
       {:chassis_boundary, path: "../chassis_boundary"},
       {:chassis_evolution_receipts, path: "../../evolution/chassis_evolution_receipts"},
-      DependencySources.dep(:citadel_governance, @repo_root),
-      DependencySources.dep(:citadel_authority_contract, @repo_root)
+      workspace_dep({:citadel_governance, "~> 0.1.0"}),
+      workspace_dep({:citadel_authority_contract, "~> 0.1.0"})
     ]
+  end
+
+  defp workspace_dep(committed) do
+    if function_exported?(MixWorkspaceOpsBootstrap, :dep, 2),
+      do: apply(MixWorkspaceOpsBootstrap, :dep, [committed, __DIR__]),
+      else: committed
   end
 end

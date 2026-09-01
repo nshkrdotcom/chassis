@@ -1,11 +1,7 @@
-unless Code.ensure_loaded?(DependencySources) do
-  Code.require_file("../../build_support/dependency_sources.exs", __DIR__)
-end
+if bootstrap = System.get_env("MIX_WORKSPACE_OPS_BOOTSTRAP"), do: Code.require_file(bootstrap)
 
 defmodule Chassis.Stack.Manager.MixProject do
   use Mix.Project
-
-  @repo_root Path.expand("../..", __DIR__)
 
   def project do
     [
@@ -31,7 +27,13 @@ defmodule Chassis.Stack.Manager.MixProject do
       {:chassis_releases, path: "../../core/chassis_releases"},
       {:chassis_stack, path: "../../core/chassis_stack"},
       {:chassis_tenant, path: "../../core/chassis_tenant"},
-      DependencySources.dep(:ground_plane_contracts, @repo_root)
+      workspace_dep({:ground_plane_contracts, "~> 0.1.0"})
     ]
+  end
+
+  defp workspace_dep(committed) do
+    if function_exported?(MixWorkspaceOpsBootstrap, :dep, 2),
+      do: apply(MixWorkspaceOpsBootstrap, :dep, [committed, __DIR__]),
+      else: committed
   end
 end

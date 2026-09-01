@@ -1,6 +1,4 @@
-unless Code.ensure_loaded?(DependencySources) do
-  Code.require_file("build_support/dependency_sources.exs", __DIR__)
-end
+if bootstrap = System.get_env("MIX_WORKSPACE_OPS_BOOTSTRAP"), do: Code.require_file(bootstrap)
 
 defmodule Chassis.Workspace.MixProject do
   use Mix.Project
@@ -35,7 +33,7 @@ defmodule Chassis.Workspace.MixProject do
 
   defp deps do
     [
-      DependencySources.dep(:blitz, __DIR__, runtime: false),
+      workspace_dep({:blitz, "~> 0.3.0", runtime: false}),
       {:chassis_doctor, path: "bootstrap/chassis_doctor"},
       {:chassis_evolution_conformance, path: "proof/chassis_evolution_conformance"},
       {:chassis_hardware_guard, path: "model/chassis_hardware_guard"},
@@ -45,11 +43,17 @@ defmodule Chassis.Workspace.MixProject do
       {:chassis_stack_manager, path: "manager/chassis_stack_manager"},
       {:chassis_tensor_reload, path: "model/chassis_tensor_reload"},
       {:chassis_weight_materializer, path: "model/chassis_weight_materializer"},
-      DependencySources.dep(:weld, __DIR__, only: [:dev, :test], runtime: false),
+      workspace_dep({:weld, "~> 0.8.4", only: [:dev, :test], runtime: false}),
       {:credo, "~> 1.7.19", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4.7", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.40.3", only: :dev, runtime: false}
     ]
+  end
+
+  defp workspace_dep(committed) do
+    if function_exported?(MixWorkspaceOpsBootstrap, :dep, 2),
+      do: apply(MixWorkspaceOpsBootstrap, :dep, [committed, __DIR__]),
+      else: committed
   end
 
   def cli do
